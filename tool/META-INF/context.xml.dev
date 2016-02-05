@@ -1,0 +1,45 @@
+<Context reloadable="true">
+	<Parameter name="isDevelop" value="true" override="false"/>
+	<Resource
+		name="jdbc/manager"
+		auth="Container"
+		type="javax.sql.DataSource"
+		maxActive="10"
+		maxIdle="30"
+		maxWait="10000"
+		testOnBorrow="true"
+		validationQuery="SELECT 1"
+		username="root"
+		password="sanel"
+		driverClassName="com.mysql.jdbc.Driver"
+		url="jdbc:mysql://dms:3306/manager?useUnicode=true&amp;characterEncoding=utf8"
+	/>
+	<Resource
+		name="jdbc/game-readwrite"
+		auth="Container"
+		type="javax.sql.DataSource"
+		maxActive="10"
+		maxIdle="30"
+		maxWait="10000"
+		testOnBorrow="true"
+		validationQuery="SELECT 1"
+		username="root"
+		password="sanel"
+		driverClassName="com.mysql.jdbc.Driver"
+		url="jdbc:mysql://dms:3306/sd?useUnicode=true&amp;characterEncoding=utf8"
+	/>
+	<Resource
+		name="jdbc/game-readonly"
+		auth="Container"
+		type="javax.sql.DataSource"
+		maxActive="10"
+		maxIdle="30"
+		maxWait="10000"
+		testOnBorrow="true"
+		validationQuery="SELECT 1"
+		username="root"
+		password="sanel"
+		driverClassName="com.mysql.jdbc.Driver"
+		url="jdbc:mysql://dms:3306/sd?useUnicode=true&amp;characterEncoding=utf8"
+	/>
+</Context>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="datamgr" default="" basedir="..">
+	<!-- ソースディレクトリのパス -->
+	<property name="src_dir" value="src"/>
+	<!-- ライブラリディレクトリのパス -->
+	<property name="lib_dir" value="WEB-INF/lib"/>
+	<!-- jspディレクトリへのパス -->
+        <property name="jsp_dir" value="WEB-INF/jsp"/>
+	<!-- クラスファイルを出力するディレクトリ -->
+	<property name="classes_dir" value="temporary"/>
+	<!-- jarファイルを出力するディレクトリ -->
+	<property name="jar_dir" value="."/>
+	<!-- jarファイル名 -->
+	<property name="jar_name" value="datamgr"/>
+	<!-- warファイル作成のための添付ディレクトリ -->
+	<property name="war_tmp_dir" value="tmp"/>
+	<!-- warファイルを出力するディレクトリ -->
+	<property name="war_dir" value="."/>
+	<!-- ファイルエンコード -->
+	<property name="encoding" value="utf-8"/> 
+	<!-- makejar -->
+	<target name="mkjar" depends="">
+		<mkdir dir="${classes_dir}"/>
+		<delete>
+			<fileset dir="${classes_dir}"/>
+		</delete>
+		<javac srcdir="${src_dir}" destdir="${classes_dir}" encoding="${encoding}" includeantruntime="false">
+
+			<classpath>
+				<fileset dir="${lib_dir}">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+			<compilerarg value="-g:lines,source,vars"/>
+			<compilerarg value="-Xlint:unchecked"/>
+		</javac>
+		<mkdir dir="${jar_dir}"/>
+		<jar jarfile="${jar_dir}/${jar_name}.jar">
+			<fileset dir="${classes_dir}" includes="**/*.class"/>
+		</jar>
+		<delete includeEmptyDirs="true">
+			<fileset dir="${classes_dir}"/>
+		</delete>
+	</target>
+    <target name="mkwar" depends="mkjar">
+        <echo message="using META-INF/context.xml.${stage} as config file"/>
+        <copy file="META-INF/context.xml.${stage}" tofile="META-INF/context.xml"/>
+		<war destfile="${jar_dir}/${jar_name}.war" webxml="WEB-INF/web.xml">
+			<lib dir="${lib_dir}" includes="*.jar"/>
+			<lib file="${jar_dir}/${jar_name}.jar"/>
+			<fileset dir="." includes="**/*.jsp"/>
+ 			<fileset dir="." includes="**/*.css"/>
+			<fileset dir="." includes="**/*.ico"/>
+			<metainf dir="META-INF" includes="*.xml"/>
+		</war>
+		<delete file="META-INF/context.xml"/>
+	</target>
+</project>

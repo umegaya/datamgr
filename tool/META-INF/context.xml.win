@@ -1,0 +1,44 @@
+<Context reloadable="true">
+	<Resource
+		name="jdbc/manager"
+		auth="Container"
+		type="javax.sql.DataSource"
+		maxActive="10"
+		maxIdle="30"
+		maxWait="10000"
+		testOnBorrow="true"
+		validationQuery="SELECT 1"
+		username="root"
+		password="dokyogames"
+		driverClassName="com.mysql.jdbc.Driver"
+		url="jdbc:mysql://localhost:3306/manager?useUnicode=true&amp;characterEncoding=utf8"
+	/>
+	<Resource
+		name="jdbc/game-readwrite"
+		auth="Container"
+		type="javax.sql.DataSource"
+		maxActive="10"
+		maxIdle="30"
+		maxWait="10000"
+		testOnBorrow="true"
+		validationQuery="SELECT 1"
+		username="root"
+		password="dokyogames"
+		driverClassName="com.mysql.jdbc.Driver"
+		url="jdbc:mysql://localhost:3306/caravan_heroes?useUnicode=true&amp;characterEncoding=utf8"
+	/>
+	<Resource
+                name="jdbc/game-readonly"
+                auth="Container"
+                type="javax.sql.DataSource"
+                maxActive="10"
+                maxIdle="30"
+                maxWait="10000"
+                testOnBorrow="true"
+                validationQuery="SELECT 1"
+                username="root"
+                password="dokyogames"
+                driverClassName="com.mysql.jdbc.Driver"
+                url="jdbc:mysql://localhost:3306/caravan_heroes?useUnicode=true&amp;characterEncoding=utf8"
+        />
+</Context>

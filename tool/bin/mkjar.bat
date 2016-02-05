@@ -1,0 +1,1 @@
+ant mkjar -Dstage=dev

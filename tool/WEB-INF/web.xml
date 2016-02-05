@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app>
+	<context-param>
+		<param-name>title-name</param-name>
+		<param-value>enterquest-manager</param-value>
+	</context-param>
+	<context-param>
+		<param-name>title-alias</param-name>
+		<param-value>管理画面</param-value>
+	</context-param>
+	<context-param>
+		<param-name>environment-name</param-name>
+		<param-value>local</param-value>
+	</context-param>
+	<context-param>
+		<param-name>environment-alias</param-name>
+		<param-value>ローカル環境</param-value>
+	</context-param>
+	<servlet>
+		<servlet-name>enterquest.manager-server</servlet-name>
+		<servlet-class>jp.enterquest.system.HttpServer</servlet-class>
+		<init-param>
+			<param-name>server-delegate-class</param-name>
+			<param-value>jp.enterquest.manager.core.ManagerServer</param-value>
+		</init-param>
+		<init-param>
+			<param-name>allowed-addresses</param-name>
+			<param-value>10.0.0.0/8 192.168.0.0/16</param-value>
+		</init-param>
+		<init-param>
+			<param-name>log-type</param-name>
+			<param-value>console</param-value>
+		</init-param>
+		<multipart-config>
+			<location></location>
+			<max-file-size>-1</max-file-size>
+			<max-request-size>-1</max-request-size>
+			<file-size-threshold>0</file-size-threshold>
+		</multipart-config>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>enterquest.database-viewer</servlet-name>
+		<servlet-class>jp.enterquest.system.HttpServer</servlet-class>
+		<init-param>
+			<param-name>server-delegate-class</param-name>
+			<param-value>jp.enterquest.manager.database.DatabaseViewer</param-value>
+		</init-param>
+		<init-param>
+			<param-name>allowed-addresses</param-name>
+			<param-value>10.0.0.0/8 192.168.0.0/16</param-value>
+		</init-param>
+		<init-param>
+			<param-name>log-type</param-name>
+			<param-value>console</param-value>
+		</init-param>
+		<load-on-startup>2</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>enterquest.manager-server</servlet-name>
+		<url-pattern>/main</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>enterquest.database-viewer</servlet-name>
+		<url-pattern>/console</url-pattern>
+	</servlet-mapping>
+</web-app>

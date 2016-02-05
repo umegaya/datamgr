@@ -1,0 +1,45 @@
+<Context reloadable="true">
+	<Parameter name="isDevelop" value="false" override="false"/>
+	<Resource
+		name="jdbc/manager"
+		auth="Container"
+		type="javax.sql.DataSource"
+		maxActive="10"
+		maxIdle="30"
+		maxWait="10000"
+		testOnBorrow="true"
+		validationQuery="SELECT 1"
+		username="caravan_heroes"
+		password="hV8k5xyh"
+		driverClassName="com.mysql.jdbc.Driver"
+		url="jdbc:mysql://10.125.205.198:3306/manager?useUnicode=true&amp;characterEncoding=utf8"
+	/>
+	<Resource
+		name="jdbc/game-readwrite"
+		auth="Container"
+		type="javax.sql.DataSource"
+		maxActive="10"
+		maxIdle="30"
+		maxWait="10000"
+		testOnBorrow="true"
+		validationQuery="SELECT 1"
+		username="caravan_heroes"
+		password="hV8k5xyh"
+		driverClassName="com.mysql.jdbc.Driver"
+		url="jdbc:mysql://10.125.205.198:3306/caravan_heroes?useUnicode=true&amp;characterEncoding=utf8"
+	/>
+	<Resource
+		name="jdbc/game-readonly"
+		auth="Container"
+		type="javax.sql.DataSource"
+		maxActive="10"
+		maxIdle="30"
+		maxWait="10000"
+		testOnBorrow="true"
+		validationQuery="SELECT 1"
+		username="caravan_heroes"
+		password="hV8k5xyh"
+		driverClassName="com.mysql.jdbc.Driver"
+		url="jdbc:mysql://10.125.205.198:3306/caravan_heroes?useUnicode=true&amp;characterEncoding=utf8"
+	/>
+</Context>
