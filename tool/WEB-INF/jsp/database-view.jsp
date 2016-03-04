@@ -121,6 +121,7 @@ $(function() {
 	var ag = $("#apply-game");
 	var dady = da.find("tr.dirty");
 	var ds = $('.dyn-select');
+	var hovers = $('[title]');
 
 	daf.bind("jsubmit", function( e, input ) {
 		var cinput = $(input);
@@ -314,6 +315,19 @@ $(function() {
 			$("#option_cache_" + table).html($(this).children());
 		}
 		$(this).html(selected);
+	})
+	hovers.hover(function () {
+		var value = $(this).attr("title")
+		if (value != null) {
+			var explain = $('#note-' + value).attr("value");
+			$(this).attr("title", explain);
+			$(this).attr("titleprev", value);
+		}
+	}, function () {
+		var value = $(this).attr("titleprev");
+		if (value != null) {
+			$(this).attr("title", value);
+		}
 	})
 });
 
@@ -731,6 +745,8 @@ function upload_check(id){
 			final InformationColumn.Row information_column = InformationColumn.getTable().findRow(information_columns, column_name);
 			final String defaultValue = information_column.getColumnDefault();
 			final String defaultValueExpr = (defaultValue.length() > 0 ? ("value = " + defaultValue) : "");
+%>			<div id="note-<%= column_name %>" value="<%= column_name %>:<%= column.getNotes() %>">
+<%
 			if (ManagedTable.getTable().isRenderableRelation(relations, table_name, column_name))
 			{
 				final Relation.Row relation = Relation.getTable().findRow(relations, table_name, column_name);
@@ -754,7 +770,7 @@ function upload_check(id){
 <%
 				}
 
-%>				<select class="box odd dyn-select" name="column:<%= column_name %>" title="<%= column_name %>: <%= column_alias %>" linked_table="<%= parent_table_name %>">
+%>				<select class="box odd dyn-select" name="column:<%= column_name %>" title="<%= column_name %>" linked_table="<%= parent_table_name %>">
 <%
 				if (information_column.isNullable())
 				{
@@ -773,30 +789,30 @@ function upload_check(id){
 			{
 				if (information_column.isTinyInt())
 				{
-%>			<input type="checkbox" name="column:<%= column_name %>" title="<%= column_name %>: <%= column_alias %>" <%= defaultValueExpr %> />
+%>			<input type="checkbox" name="column:<%= column_name %>" title="<%= column_name %>" <%= defaultValueExpr %> />
 <%
 				}
 				else if (information_column.isSmallInt() || information_column.isMediumInt() || information_column.isInt() || information_column.isBigInt() || information_column.isFloat() || information_column.isDouble())
 				{
-%>			<input class="box odd right" type="text" name="column:<%= column_name %>" style="width: <%= width %>px;" title="<%= column_name %>: <%= column_alias %>" <%= defaultValueExpr %> />
+%>			<input class="box odd right" type="text" name="column:<%= column_name %>" style="width: <%= width %>px;" title="<%= column_name %>" <%= defaultValueExpr %> />
 <%
 				}
 				else if (information_column.isChar() || information_column.isVarchar() || information_column.isText())
 				{
-%>			<textarea class="box odd middle" name="column:<%= column_name %>" style="width: <%= width %>px; height: <%= height %>px; overflow-y: scroll;" title="<%= column_name %>: <%= column_alias %>"><%= defaultValue %></textarea>
+%>			<textarea class="box odd middle" name="column:<%= column_name %>" style="width: <%= width %>px; height: <%= height %>px; overflow-y: scroll;" title="<%= column_name %>"><%= defaultValue %></textarea>
 <%
 				}
 				else if (information_column.isDateTime() || information_column.isTimestamp())
 				{
 					if (!selected_table.getInsertTimeColumn().equals(column_name) && !selected_table.getUpdateTimeColumn().equals(column_name))
 					{
-%>			<input class="box odd left" type="text" name="column:<%= column_name %>" style="width: <%= width %>px;" title="<%= column_name %>: <%= column_alias %>" <%= defaultValueExpr %> />
+%>			<input class="box odd left" type="text" name="column:<%= column_name %>" style="width: <%= width %>px;" title="<%= column_name %>" <%= defaultValueExpr %> />
 <%
 					}
 				}
 				else
 				{
-%>			<input class="box odd left" type="text" name="column:<%= column_name %>" style="width: <%= width %>px;" title="<%= column_name %>: <%= column_alias %>" <%= defaultValueExpr %> />
+%>			<input class="box odd left" type="text" name="column:<%= column_name %>" style="width: <%= width %>px;" title="<%= column_name %>" <%= defaultValueExpr %> />
 <%
 				}
 			}
@@ -901,7 +917,7 @@ function upload_check(id){
 						final ManagedTable.Row parent_table = ManagedTable.getTable().findRow(tables, parent_table_name);
 						final String display_column_name = parent_table.getDisplayColumn();
 						final Data parent_rows = relation_rows.get(parent_table_name);
-%>						<select class="box odd dyn-select" name="column:<%= column_name %>" title="<%= column_name %>: <%= column_alias %>" linked_table="<%= parent_table_name %>">
+%>						<select class="box odd dyn-select" name="column:<%= column_name %>" title="<%= column_name %>" linked_table="<%= parent_table_name %>">
 <%
 						boolean dead_link = true;
 						if (information_column.isNullable())
@@ -941,35 +957,35 @@ function upload_check(id){
 						if (information_column.isTinyInt())
 						{
 							final String checked = (!column_value.equals("0") ? " checked" : "");
-%>							<input type="checkbox<%= disabled %>" name="column:<%= column_name %>" title="<%= column_name %>: <%= column_alias %>"<%= checked %><%= disabled %>/>
+%>							<input type="checkbox<%= disabled %>" name="column:<%= column_name %>" title="<%= column_name %>"<%= checked %><%= disabled %>/>
 <%
 						}
 						else if (information_column.isSmallInt() || information_column.isMediumInt() || information_column.isInt() || information_column.isBigInt() || information_column.isFloat() || information_column.isDouble())
 						{
-%>							<input class="box <%= odd_or_even %> right<%= disabled %>" type="text" name="column:<%= column_name %>" value="<%= column_value %>" style="width: <%= width %>px;" title="<%= column_name %>: <%= column_alias %>"<%= disabled %>/>
+%>							<input class="box <%= odd_or_even %> right<%= disabled %>" type="text" name="column:<%= column_name %>" value="<%= column_value %>" style="width: <%= width %>px;" title="<%= column_name %>"<%= disabled %>/>
 <%
 						}
 						else if (information_column.isChar() || information_column.isVarchar() || information_column.isText())
 						{
-%>							<textarea class="box <%= odd_or_even %> middle<%= disabled %>" name="column:<%= column_name %>" style="width: <%= width %>px; height: <%= height %>px; overflow-y: scroll;" title="<%= column_name %>: <%= column_alias %>"<%= disabled %>><%= column_value %></textarea>
+%>							<textarea class="box <%= odd_or_even %> middle<%= disabled %>" name="column:<%= column_name %>" style="width: <%= width %>px; height: <%= height %>px; overflow-y: scroll;" title="<%= column_name %>"<%= disabled %>><%= column_value %></textarea>
 <%
 						}
 						else if (information_column.isDateTime() || information_column.isTimestamp())
 						{
 							if (selected_table.getInsertTimeColumn().equals(column_name) || selected_table.getUpdateTimeColumn().equals(column_name))
 							{
-%>								<input class="box <%= odd_or_even %> left disabled" type="text" name="column:<%= column_name %>" value="<%= column_value %>" style="width: <%= width %>px;" title="<%= column_name %>: <%= column_alias %>" disabled/>
+%>								<input class="box <%= odd_or_even %> left disabled" type="text" name="column:<%= column_name %>" value="<%= column_value %>" style="width: <%= width %>px;" title="<%= column_name %>" disabled/>
 <%
 							}
 							else
 							{
-%>								<input class="box <%= odd_or_even %> left<%= disabled %>" type="text" name="column:<%= column_name %>" value="<%= column_value %>" style="width: <%= width %>px;" title="<%= column_name %>: <%= column_alias %>"<%= disabled %>/>
+%>								<input class="box <%= odd_or_even %> left<%= disabled %>" type="text" name="column:<%= column_name %>" value="<%= column_value %>" style="width: <%= width %>px;" title="<%= column_name %>"<%= disabled %>/>
 <%
 							}
 						}
 						else
 						{
-%>							<input class="box <%= odd_or_even %> left<%= disabled %>" type="text" name="column:<%= column_name %>" value="<%= column_value %>" style="width: <%= width %>px;" title="<%= column_name %>: <%= column_alias %>"<%= disabled %>/>
+%>							<input class="box <%= odd_or_even %> left<%= disabled %>" type="text" name="column:<%= column_name %>" value="<%= column_value %>" style="width: <%= width %>px;" title="<%= column_name %>"<%= disabled %>/>
 <%
 						}
 					}

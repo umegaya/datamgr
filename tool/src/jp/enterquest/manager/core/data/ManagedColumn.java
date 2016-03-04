@@ -102,12 +102,13 @@ public final class ManagedColumn
 		public final Row selectRow(final SqlConnection connection, final String database_name, final String table_name, final String column_name)
 		{
 			final String sql = String.format(
-				"SELECT `%s`,`%s`,`%s`,`%s`,`%s` FROM `%s` WHERE `%s`=? AND `%s`=? AND `%s`=?"
+				"SELECT `%s`,`%s`,`%s`,`%s`,`%s`,`%s` FROM `%s` WHERE `%s`=? AND `%s`=? AND `%s`=?"
 				, Column.DATABASE
 				, Column.TABLE
 				, Column.NAME
 				, Column.ALIAS
 				, Column.ORDINAL
+				, Column.NOTES
 				, Table.NAME
 				, Column.DATABASE
 				, Column.TABLE
@@ -148,12 +149,13 @@ public final class ManagedColumn
 		public final Array<Row> selectRows(final SqlConnection connection)
 		{
 			final String sql = String.format(
-				"SELECT `%s`,`%s`,`%s`,`%s`,`%s` FROM `%s`"
+				"SELECT `%s`,`%s`,`%s`,`%s`,`%s`,`%s` FROM `%s`"
 				, Column.DATABASE
 				, Column.TABLE
 				, Column.NAME
 				, Column.ALIAS
 				, Column.ORDINAL
+				, Column.NOTES
 				, Table.NAME
 			);
 			final SqlStatement statement = connection.newStatement(sql);
@@ -189,12 +191,13 @@ public final class ManagedColumn
 		public final Array<Row> selectRows(final SqlConnection connection, final String database_name)
 		{
 			final String sql = String.format(
-				"SELECT `%s`,`%s`,`%s`,`%s`,`%s` FROM `%s` WHERE `%s`=?"
+				"SELECT `%s`,`%s`,`%s`,`%s`,`%s`,`%s` FROM `%s` WHERE `%s`=?"
 				, Column.DATABASE
 				, Column.TABLE
 				, Column.NAME
 				, Column.ALIAS
 				, Column.ORDINAL
+				, Column.NOTES
 				, Table.NAME
 				, Column.DATABASE
 			);
@@ -234,12 +237,13 @@ public final class ManagedColumn
 		public final Array<Row> selectRows(final SqlConnection connection, final String database_name, final String table_name)
 		{
 			final String sql = String.format(
-				"SELECT `%s`,`%s`,`%s`,`%s`,`%s` FROM `%s` WHERE `%s`=? AND `%s`=? ORDER BY `%s` ASC"
+				"SELECT `%s`,`%s`,`%s`,`%s`,`%s`,`%s` FROM `%s` WHERE `%s`=? AND `%s`=? ORDER BY `%s` ASC"
 				, Column.DATABASE
 				, Column.TABLE
 				, Column.NAME
 				, Column.ALIAS
 				, Column.ORDINAL
+				, Column.NOTES
 				, Table.NAME
 				, Column.DATABASE
 				, Column.TABLE
@@ -515,6 +519,8 @@ public final class ManagedColumn
 		private final String alias;
 		/** カラム順序 */
 		private final int ordinal;
+		/** ノート */
+		private final String notes;
 
 		/**
 		 * コンストラクタ
@@ -527,6 +533,7 @@ public final class ManagedColumn
 			this.name = result.getString(Column.NAME);
 			this.alias = result.getString(Column.ALIAS);
 			this.ordinal = result.getInt32(Column.ORDINAL);
+			this.notes = result.getString(Column.NOTES);
 		}
 
 		public Row(final String table, final SqlResult result)
@@ -535,6 +542,7 @@ public final class ManagedColumn
 			this.table = table;
 			this.name = result.getString("Field");
 			this.alias = this.name;
+			this.notes = "";
 			this.ordinal = 0;//(int)SqlOrder.ASC;
 		}
 
@@ -581,6 +589,13 @@ public final class ManagedColumn
 		public final int getOrdinal()
 		{
 			return this.ordinal;
+		}
+
+		/**
+		 * カラムノートを取得する
+		 */
+		public final String getNotes() {
+			return this.notes;
 		}
 	}
 

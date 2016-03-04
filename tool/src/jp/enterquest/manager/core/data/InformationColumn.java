@@ -113,7 +113,7 @@ public class InformationColumn
 		public final Array<Row> selectRows(final SqlConnection connection)
 		{
 			final String sql = String.format(
-				"SELECT `%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s` FROM `%s`.`%s` WHERE `%s`=(SELECT DATABASE())"
+				"SELECT `%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s` FROM `%s`.`%s` WHERE `%s`=(SELECT DATABASE())"
 				, Column.TABLE_NAME
 				, Column.COLUMN_NAME
 				, Column.ORDINAL_POSITION
@@ -123,6 +123,7 @@ public class InformationColumn
 				, Column.COLUMN_TYPE
 				, Column.EXTRA
 				, Column.COLUMN_DEFAULT
+				, Column.COLUMN_COMMENT
 				, Table.SCHEMA
 				, Table.NAME
 				, Column.TABLE_SCHEMA
@@ -160,7 +161,7 @@ public class InformationColumn
 		public final Array<Row> selectRows(final SqlConnection connection, final String table_name)
 		{
 			final String sql = String.format(
-				"SELECT `%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s` FROM `%s`.`%s` WHERE `%s`=(SELECT DATABASE()) AND `%s`=? ORDER BY `%s` ASC"
+				"SELECT `%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s`,`%s` FROM `%s`.`%s` WHERE `%s`=(SELECT DATABASE()) AND `%s`=? ORDER BY `%s` ASC"
 				, Column.TABLE_NAME
 				, Column.COLUMN_NAME
 				, Column.ORDINAL_POSITION
@@ -170,6 +171,7 @@ public class InformationColumn
 				, Column.COLUMN_TYPE
 				, Column.EXTRA
 				, Column.COLUMN_DEFAULT
+				, Column.COLUMN_COMMENT
 				, Table.SCHEMA
 				, Table.NAME
 				, Column.TABLE_SCHEMA
