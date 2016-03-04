@@ -175,7 +175,8 @@ public final class SynchronizationTask extends Task
 					final String database_name = database.getName();
 					final Array<InformationColumn.Row> information_columns = InformationColumn.getTable().selectRows(connection);
 					database_columns.set(database_name, information_columns);
-					final Array<InformationTable.Row> information_tables = InformationTable.getTable().selectRows(connection);
+					//to match foo_bar_masters earlier than bar_masters. 
+					final Array<InformationTable.Row> information_tables = InformationTable.getTable().selectRows(connection, "length(TABLE_NAME) DESC");
 					database_tables.set(database_name, information_tables);
 				}
 				finally
@@ -201,7 +202,7 @@ public final class SynchronizationTask extends Task
 					final int ordinal = information_column.getOrdinal();
 					if (!ManagedColumn.getTable().hasRow(columns, database_name, table_name, column_name))
 					{
-						ManagedColumn.getTable().insertRow(manager_connection, database_name, table_name, column_name, ordinal);
+						ManagedColumn.getTable().insertRow(manager_connection, database_name, table_name, column_name, ordinal, information_column.getComment());
 					}
 					else
 					{
@@ -227,6 +228,7 @@ public final class SynchronizationTask extends Task
 										InformationColumn.getTable().hasRow(information_columns, parent_table_name, rule.getColumnName())) {
 										//logger.info("add relation %s %s %s %s", parent_table_name, rule.getColumnName(), table_name, column_name);
 										Relation.getTable().insertRow(manager_connection, database_name, parent_table_name, rule.getColumnName(), table_name, column_name);
+										relations.add(new Relation.Row(database_name, parent_table_name, rule.getColumnName(), table_name, column_name));
 									}
 								}
 							}

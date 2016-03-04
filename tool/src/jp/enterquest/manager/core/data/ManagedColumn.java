@@ -280,7 +280,7 @@ public final class ManagedColumn
 		 * @param column_name カラム名
 		 * @param ordinal カラム順序
 		 */
-		public final void insertRow(final SqlConnection connection, final String database_name, final String table_name, final String column_name, final int ordinal)
+		public final void insertRow(final SqlConnection connection, final String database_name, final String table_name, final String column_name, final int ordinal, final String note)
 		{
 			final String sql = String.format(
 				"INSERT INTO `%s` SET `%s`=?,`%s`=?,`%s`=?,`%s`=?,`%s`=?,`%s`=?,`%s`=NOW(),`%s`=NOW()"
@@ -303,7 +303,7 @@ public final class ManagedColumn
 				statement.setString(index++, column_name);
 				statement.setString(index++, column_name);
 				statement.setInt32(index++, ordinal);
-				statement.setString(index++, "");
+				statement.setString(index++, note);
 				statement.executeUpdate();
 			}
 			finally

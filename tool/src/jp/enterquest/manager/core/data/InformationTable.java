@@ -109,12 +109,17 @@ public class InformationTable
 		 */
 		public final Array<Row> selectRows(final SqlConnection connection)
 		{
+			return this.selectRows(connection, null);
+		}
+		public final Array<Row> selectRows(final SqlConnection connection, final String sorted_by)
+		{
 			final String sql = String.format(
-				"SELECT `%s` FROM `%s`.`%s` WHERE `%s`=(SELECT DATABASE())"
+				"SELECT `%s` FROM `%s`.`%s` WHERE `%s`=(SELECT DATABASE()) %s"
 				, Column.TABLE_NAME
 				, Table.SCHEMA
 				, Table.NAME
 				, Column.TABLE_SCHEMA
+				, (sorted_by == null ? "" : String.format("ORDER BY %s", sorted_by))
 			);
 			final SqlStatement statement = connection.newStatement(sql);
 			try

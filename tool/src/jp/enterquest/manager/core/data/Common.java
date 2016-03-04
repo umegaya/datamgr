@@ -14,6 +14,7 @@ import jp.enterquest.system.SqlResult;
 import jp.enterquest.system.SqlStatement;
 
 import jp.enterquest.system.ConsoleLogger;
+import jp.enterquest.system.Logger;
 
 import java.lang.reflect.*;
 import java.sql.*;
@@ -409,7 +410,8 @@ public class Common
 			boolean first = true;
 			for (final String column_name : values)
 			{
-				if (InformationColumn.getTable().hasRow(columns, column_name))
+				InformationColumn.Row row = InformationColumn.getTable().findRow(columns, column_name);
+				if (row != null && !row.isAutoIncrement())
 				{
 					final Data value = values.get(column_name);
 					buffer.append(first ? " SET " : ",");
@@ -453,7 +455,8 @@ public class Common
 			int index = 0;
 			for (final String column_name : values)
 			{
-				if (InformationColumn.getTable().hasRow(columns, column_name))
+				InformationColumn.Row row = InformationColumn.getTable().findRow(columns, column_name);
+				if (row != null && !row.isAutoIncrement())
 				{
 					final Data column_value = values.get(column_name);
 					if (!column_value.isNull())
@@ -497,7 +500,8 @@ public class Common
 			boolean first = true;
 			for (final String column_name : values)
 			{
-				if (InformationColumn.getTable().hasRow(columns, column_name))
+				InformationColumn.Row row = InformationColumn.getTable().findRow(columns, column_name);
+				if (row != null && !row.isAutoIncrement())
 				{
 					final Data value = values.get(column_name);
 					buffer.append(first ? " SET " : ",");
@@ -546,7 +550,8 @@ public class Common
 			int index = 0;
 			for (final String column_name : values)
 			{
-				if (InformationColumn.getTable().hasRow(columns, column_name))
+				InformationColumn.Row row = InformationColumn.getTable().findRow(columns, column_name);
+				if (row != null && !row.isAutoIncrement())
 				{
 					final Data column_value = values.get(column_name);
 					if (!column_value.isNull())

@@ -255,8 +255,29 @@ public class InformationColumn
 					return column;
 				}
 			}
-			throw new RuntimeException(String.format("column=%s : row is not found in `%s`.`%s`.", column_name, Table.SCHEMA, Table.NAME));
+			return null;
 		}
+
+		/**
+		 * カラム情報が存在するかどうかを取得する
+		 * @param columns カラム情報リスト
+		 * @param table_name テーブル名
+		 * @param column_name カラム名
+		 * @return カラム情報が存在する場合はtrueを返す
+		 */
+		public final Row findRow(final Array<Row> columns, final String table_name, final String column_name)
+		{
+			for (final Row column : columns)
+			{
+				if (column.getTableName().equals(table_name)
+					&& column.getColumnName().equals(column_name))
+				{
+					return column;
+				}
+			}
+			return null;
+		}
+
 	}
 
 	/**
@@ -288,6 +309,8 @@ public class InformationColumn
 		private final boolean auto_increment;
 		/** デフォルト値 */
 		private final String column_default;
+		/** コメント */
+		private final String column_comment;
 		
 
 		/**
@@ -305,6 +328,7 @@ public class InformationColumn
 			this.column_type = result.getString(Column.COLUMN_TYPE);
 			this.column_default = result.getString(Column.COLUMN_DEFAULT);
 			this.auto_increment = result.getString(Column.EXTRA).equals(Row.AUTO_INCREMENT);
+			this.column_comment = result.getString(Column.COLUMN_COMMENT);
 		}
 
 		/**
@@ -512,6 +536,13 @@ public class InformationColumn
 		{
 			return this.auto_increment;
 		}
+
+		/**
+		 * コメントを取得
+		 */
+		public final String getComment() {
+			return this.column_comment;
+		}
 	}
 
 	/**
@@ -540,6 +571,8 @@ public class InformationColumn
 		public static final String EXTRA = "EXTRA";
 		/** デフォルト値 */
 		public static final String COLUMN_DEFAULT = "COLUMN_DEFAULT";
+		/** コメント値 */
+		public static final String COLUMN_COMMENT = "COLUMN_COMMENT";
 
 		/**
 		 * @deprecated

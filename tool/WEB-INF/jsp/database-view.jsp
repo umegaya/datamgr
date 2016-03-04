@@ -120,6 +120,7 @@ $(function() {
 	var iau = $("#all-update");
 	var ag = $("#apply-game");
 	var dady = da.find("tr.dirty");
+	var ds = $('.dyn-select');
 
 	daf.bind("jsubmit", function( e, input ) {
 		var cinput = $(input);
@@ -289,6 +290,31 @@ $(function() {
 			}
 		});
 	});
+	ds.focus(function () {
+		var table = $(this).attr("linked_table");
+		//console.log("TODO: オプション要素をロードして中に入れ込む:" + table);
+		if (table != null) {
+			var elem = $(this).children();
+			var options = $("#option_cache_" + table).children().removeAttr("selected");
+			$(this).html(options);
+			if (elem.length > 0) {
+				//console.log("attr:" + elem.attr("value"));
+				var matched = $(this).children("[value=" + elem.attr("value") + "]")
+				if (matched.length > 0) {
+					matched.attr("selected", true);
+				}
+			}
+		}
+	})
+	ds.blur(function () {
+		//console.log("TODO: オプション要素をあんロード");		
+		var selected = $(this).children(":selected").clone();
+		var table = $(this).attr("linked_table");
+		if (table != null) {
+			$("#option_cache_" + table).html($(this).children());
+		}
+		$(this).html(selected);
+	})
 });
 
 // jsonとcsvを適用する前に確認を行うダイアログを表示
@@ -520,14 +546,21 @@ function upload_check(id){
 				final ManagedTable.Row parent_table = ManagedTable.getTable().findRow(tables, parent_table_name);
 				final String display_column_name = parent_table.getDisplayColumn();
 				final Data parent_rows = relation_rows.get(parent_table_name);
-%>						<select class="box odd" name="filter-condition:<%= column_name %>">
+%>						<select class="box odd dyn-select" name="filter-condition:<%= column_name %>" linked_table="<%= parent_table_name %>">
 <%
+				boolean has_option = false;
 				for (final Data parent_row : parent_rows.asArray())
 				{
 					final String parent_column_value = HtmlEncoder.getInstance().encode(parent_row.asHash().get(parent_column_name).asString());
 					final String display_column_value = HtmlEncoder.getInstance().encode(parent_row.asHash().get(display_column_name).asString());
-					final String item_selected = (filter_condition.equals(parent_column_value) ? " selected" : "");
-%>							<option value="<%= parent_column_value %>" label="<%= display_column_value %>" title="<%= parent_column_value %>"<%= item_selected %>/>
+					if (filter_condition.equals(parent_column_value)) {
+							has_option = true;
+%>							<option value="<%= parent_column_value %>" label="<%= display_column_value %>" title="<%= parent_column_value %>" selected/>
+<%
+					}
+				}
+				if (!has_option) {
+%>					<option value="null", label="select", title="select"/>
 <%
 				}
 %>						</select>
@@ -674,6 +707,7 @@ function upload_check(id){
 	{
 		final String database_name = selected_database.getName();
 		final String table_name = selected_table.getName();
+		Hash cached_options = Hash.newInstance();
 %>		<!-- 追加フォーム -->
 	  <div class="write-area dark">
 		<table class="submiter">
@@ -705,21 +739,34 @@ function upload_check(id){
 				final ManagedTable.Row parent_table = ManagedTable.getTable().findRow(tables, parent_table_name);
 				final String display_column_name = parent_table.getDisplayColumn();
 				final Data parent_rows = relation_rows.get(parent_table_name);
-%>				<select class="box odd" name="column:<%= column_name %>" title="<%= column_name %>: <%= column_alias %>">
+				if (!cached_options.has(parent_table_name)) {
+					cached_options.set(parent_table_name, true);
+%>					<div id="option_cache_<%= parent_table_name %>" style="display:none;">
+<%
+					for (final Data parent_row : parent_rows.asArray())
+					{
+						final String parent_column_value = HtmlEncoder.getInstance().encode(parent_row.asHash().get(parent_column_name).asString());
+						final String display_column_value = HtmlEncoder.getInstance().encode(parent_row.asHash().get(display_column_name).asString());
+%>						<option value="<%= parent_column_value %>" label="<%= display_column_value %>" title="<%= parent_column_value %>"/>
+<%
+					}				
+%>					</div>
+<%
+				}
+
+%>				<select class="box odd dyn-select" name="column:<%= column_name %>" title="<%= column_name %>: <%= column_alias %>" linked_table="<%= parent_table_name %>">
 <%
 				if (information_column.isNullable())
 				{
-%>				<option value="" label="(null)"/>
+%>					<option value="" label="(null)"/>
 <%
 				}
-				for (final Data parent_row : parent_rows.asArray())
-				{
-					final String parent_column_value = HtmlEncoder.getInstance().encode(parent_row.asHash().get(parent_column_name).asString());
-					final String display_column_value = HtmlEncoder.getInstance().encode(parent_row.asHash().get(display_column_name).asString());
-%>					<option value="<%= parent_column_value %>" label="<%= display_column_value %>" title="<%= parent_column_value %>"/>
+				else {
+%>					<option value="" label="select"/>
 <%
 				}
-%>			</select>
+
+%>				</select>
 <%
 			}
 			else
@@ -854,7 +901,7 @@ function upload_check(id){
 						final ManagedTable.Row parent_table = ManagedTable.getTable().findRow(tables, parent_table_name);
 						final String display_column_name = parent_table.getDisplayColumn();
 						final Data parent_rows = relation_rows.get(parent_table_name);
-%>						<select class="box odd" name="column:<%= column_name %>" title="<%= column_name %>: <%= column_alias %>">
+%>						<select class="box odd dyn-select" name="column:<%= column_name %>" title="<%= column_name %>: <%= column_alias %>" linked_table="<%= parent_table_name %>">
 <%
 						boolean dead_link = true;
 						if (information_column.isNullable())
@@ -877,9 +924,9 @@ function upload_check(id){
 							if (matched)
 							{
 								dead_link = false;
-							}
-%>							<option value="<%= parent_column_value %>" label="<%= display_column_value %>" title="<%= parent_column_value %>"<%= item_selected %><%= disabled %>/>
+%>								<option value="<%= parent_column_value %>" label="<%= display_column_value %>" title="<%= parent_column_value %>"<%= item_selected %><%= disabled %>/>
 <%
+							}
 						}
 						if (dead_link)
 						{

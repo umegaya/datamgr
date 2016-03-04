@@ -277,6 +277,9 @@ public final class ManagerServer implements HttpServerDelegate
 	{
 		final String allow_addresses = this.getServer().getParameters().get(ParameterName.ALLOWED_ADDRESSES).asString();
 		final int client_bits = this.getBitsFromAddress(client_address);
+		if (allow_addresses.isEmpty()) {
+			return true;
+		}
 		for (final String allow_address : allow_addresses.split(" "))
 		{
 			final String[] array = allow_address.split("/");

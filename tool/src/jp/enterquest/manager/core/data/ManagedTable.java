@@ -272,7 +272,7 @@ public final class ManagedTable
 				statement.setString(index++, table_name);
 				statement.setString(index++, table_name);
 				statement.setString(index++, "name");
-				statement.setString(index++, "id");
+				statement.setString(index++, "");
 				statement.setString(index++, "sort");
 				statement.setString(index++, "insert_time");
 				statement.setString(index++, "update_time");

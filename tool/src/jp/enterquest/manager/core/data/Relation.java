@@ -399,6 +399,17 @@ public final class Relation
 			this.child_column = result.getString(Column.CHILD_COLUMN);
 		}
 
+		public Row(final String database_name, 
+			final String parent_table, final String parent_column, 
+			final String child_table, final String child_column) 
+		{
+			this.database = database_name;
+			this.parent_table = parent_table;
+			this.parent_column = parent_column;
+			this.child_table = child_table;
+			this.child_column = child_column;
+		}
+
 		/**
 		 * データベース名を取得する
 		 * @return データベース名
