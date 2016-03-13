@@ -7,4 +7,14 @@ deploy:
 	docker run --rm -ti -p 18080:8080 --name datamgr --link datamgr_source:dms umegaya/datamgr
 
 ct: buildtool
-	docker build -t umegaya/datamgr .
+	docker build -t umegaya/datamgr tool
+
+cm: 
+	bash commiter/alpinehub.sh
+	docker build -t umegaya/dmcommit commiter
+
+st:
+	docker build -t umegaya/dmstorage storage
+
+all: ct cm st
+	echo "done!!"
