@@ -159,7 +159,6 @@ $(function() {
 			}
 		});
 	});
-
 	$('div.write-area').find('input[type=text], input[type=checkbox], select, textarea').keydown(function (e) {
 		if (e.keyCode != 13) return true;
 		if (e.ctrlKey || e.altKey || e.shiftKey) return true;
@@ -347,6 +346,37 @@ function upload_check(id){
 
 	var message = list + 'を適用します、よろしいですか？';
 	return confirm(message);
+}
+
+function on_pull_request() {
+	if (!confirm("現在の修正内容でpull requestを作成します。よろしいですか？")) return;
+	$('#pull-request').addClass("disabled");
+	$.ajax({
+		url: '<%= url %>',
+		contentType : "application/x-www-form-urlencoded",
+		type: 'POST',
+		dataType: 'text',
+		data: {"proxy-request":"pull request", "url":"http://cmt:8888/commit/<%= operator_name %>", "operator":"<%= operator_name %>"},
+		success: function (data, status, req) {
+			if (data.match(/^error:/)) {
+				alert(data);
+			}
+			else {
+				var match = data.match(/https:\/\/github.com\/.*?\/pull\/[0-9]+/);
+				if (match) {
+					alert("pull requestが作成されました:" + match[0]);
+					window.open(match[0]);
+				}
+				else {
+					alert("error:" + data);
+				}
+			}
+		},
+		error: function (req, status, error) {
+			console.log('失敗' + error);
+		}
+	});
+
 }
 
 // サーバー側の更新チェック。更新されていたら未保存分を保存してからページをリロードする.
@@ -1168,14 +1198,9 @@ setInterval(function () {
 	}
 	if (writable)
 	{
-%>		<!-- pull request フォーム -->
-		<form action="<%= url %>" method="post" enctype="multipart/form-data" style="display: inline; white-space: nowrap;">
-			<input type="hidden" name="operator" value="<%= operator_name %>"/>
-			<input type="hidden" name="database" value="<%= database_name %>"/>
-			<input type="hidden" name="table" value="<%= table_name %>"/>
-			<input type="hidden" name="url" value="http://cmt:8888/commit/<%= operator_name %>"/>
-			<input type="submit" name="proxy-request" value="Pull Request" title="Pull Request" onClick="return confirm('現在のデータをPull Requestします。よろしいですか？')"/>
-		</form>
+%>		<button id="pull-request", type="button" name="proxy-request" title="Pull Request" onClick="return on_pull_request()">
+			Pull Request
+		</button>
 <%
 	}
 %>

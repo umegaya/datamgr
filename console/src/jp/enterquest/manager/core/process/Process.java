@@ -153,6 +153,22 @@ public abstract class Process
 	}
 
 	/**
+	 * 文字列からレスポンスを書き込む
+	 */
+	protected final void WriteResponse(final HttpServerResponse response, final String content) {
+		response.setHeader("content-type", MimeType.APPLICATION_OCTETSTREAM.getName());
+		final TextWriter text_writer = response.getStream().getTextWriter(CharacterEncoding.UTF_8, LineSeparator.LF);
+		try
+		{
+			text_writer.write(content);
+		}
+		finally
+		{
+			response.getStream().close();
+		}
+	}
+
+	/**
 	 * リクエスト処理を実行する
 	 * @param request HTTPサーバリクエスト
 	 * @param response HTTPサーバレスポンス

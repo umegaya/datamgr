@@ -59,9 +59,15 @@ public final class ProxyProcess extends Process implements HttpClientDelegate
 			client.setDelegate(this);
 			client.connect();
 		}
-		catch (final RuntimeException cause)
+		catch (final Exception cause)
 		{
-			throw cause;
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			cause.printStackTrace(pw);
+			pw.flush();
+			String str = sw.toString();
+			logger.info("proxy request error:%s", str);
+			this.WriteResponse(this.resp, cause.getMessage());
 		}
 		finally
 		{
