@@ -16,6 +16,7 @@ import jp.enterquest.manager.core.process.LoginViewProcess;
 import jp.enterquest.manager.core.process.PasswordViewProcess;
 import jp.enterquest.manager.core.process.ExecSqlProcess;
 import jp.enterquest.manager.core.process.WriteSqlProcess;
+import jp.enterquest.manager.core.process.WriteSqlProcess;
 import jp.enterquest.manager.core.process.Process;
 import jp.enterquest.manager.core.task.SynchronizationTask;
 import jp.enterquest.system.CharacterEncoding;
@@ -159,8 +160,6 @@ public final class ManagerServer implements HttpServerDelegate
 		final Logger logger = this.getLogger(LoggerName.OPTION);
 		try
 		{
-			logger.debug("start");
-
 			request.setEncoding(CharacterEncoding.UTF_8);
 
 			final String client_address = request.getRemoteAddr();
@@ -179,7 +178,6 @@ public final class ManagerServer implements HttpServerDelegate
 		}
 		finally
 		{
-			logger.debug("end");
 		}
 	}
 

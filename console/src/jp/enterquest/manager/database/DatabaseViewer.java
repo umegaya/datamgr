@@ -146,8 +146,6 @@ public final class DatabaseViewer implements HttpServerDelegate
 		final Logger logger = this.getLogger(LoggerName.OPTION);
 		try
 		{
-			logger.debug("start");
-
 			if (!request.hasAttribute("url"))
 			{
 				final String client_address = request.getRemoteAddr();
@@ -164,7 +162,6 @@ public final class DatabaseViewer implements HttpServerDelegate
 		}
 		finally
 		{
-			logger.debug("end");
 		}
 	}
 

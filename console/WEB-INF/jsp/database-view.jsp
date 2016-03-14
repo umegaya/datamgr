@@ -119,7 +119,6 @@ $(function() {
 	var daid = da.find("input[name=request-delete]");
 	var iau = $("#all-update");
 	var ag = $("#apply-game");
-	var dady = da.find("tr.dirty");
 	var ds = $('.dyn-select');
 	var hovers = $('[title]');
 
@@ -251,8 +250,8 @@ $(function() {
 		daf.append(daid);
 		daf.trigger("jsubmit", this);
 	});
-	iau.bind("update_next", function() {
-		var btns = dady.find("input.update");
+	iau.bind("update_next", function(ev, dady, cb) {
+		var btns = $(dady).find("input.update");
 		var max = btns.size();
 		if (da.find(".update-requesting").size() == 0) {
 			if (update_index < max) {
@@ -262,20 +261,21 @@ $(function() {
 			}
 			else {
 				alert("Update done.");
+				cb && cb();
 				return;
 			}
 		}
-		setTimeout(function (){ iau.trigger("update_next"); }, 10);
+		setTimeout(function (){ iau.trigger("update_next", [dady, cb]); }, 10);
 	});
 	iau.click(function() {
 		if (! confirm('Are you sure you want to update all row?\n全ての行を保存してもよろしいですか？')) return;
 		dady = da.find("tr.dirty");
 		update_index = 0;
-		$(this).trigger("update_next");
+		$(this).trigger("update_next", [dady]);
 	});
 	ag.click(function() {
 		$.ajax({
-			url: "http://localhost:8080/caravan-heroes/game",
+			url: '<%= url %>',
 			data: '{ "request":"debug", "type":"UpdateCache", "int1":0 }',
 			cache: false,
 			processData: false,
@@ -349,7 +349,61 @@ function upload_check(id){
 	return confirm(message);
 }
 
-
+// サーバー側の更新チェック。更新されていたら未保存分を保存してからページをリロードする.
+var updateInfo = {
+	version: null,
+	error: false,
+	confirm: false,
+	onajax: false,
+};
+setInterval(function () {
+	if (!updateInfo.onajax) {
+		$.ajax({
+			url: '<%= url %>',
+			contentType : "application/x-www-form-urlencoded",
+			type: 'POST',
+			dataType: 'text',
+			data: {"proxy-request":"version check", "url":"http://cmt:8888/version", "operator":"<%= operator_name %>"},
+			success: function (data, status, req) {
+				console.log(JSON.stringify(updateInfo));
+				if (!data) {
+					console.log("datasource is gone. ignored");
+				}
+				else if (updateInfo.version === null) {
+					updateInfo.version = data;
+				}
+				//game server changed or recover from link dead
+				else if (updateInfo.version != data || updateInfo.error) {
+					console.log("need reload:" + updateInfo.version + " => " + data + "|" + updateInfo.error + "|" + updateInfo.confirm);
+					var tmp = $('div.data-area').find("tr.dirty");
+					var update = false;
+					if (tmp.size() > 0) {
+						if (confirm("エディタが更新されました。編集中のデータはすべて失われます。更新の前に保存しますか？")) {
+							update = true;	
+						}
+					}
+					if (update) {
+						$("#all-update").trigger("update_next", [tmp, function () {
+							location.reload();
+						}]);
+					}
+					else {
+						setTimeout(function () {
+							location.reload();
+						}, 10);
+					}
+				}
+				updateInfo.onajax = false;
+			},
+			error: function (req, status, error) {
+				console.log('失敗' + error);
+				updateInfo.onajax = false;
+				updateInfo.error = true;
+			}
+		});
+		updateInfo.onajax = true;
+	}
+}, 5000);
 
 
 
@@ -1041,10 +1095,10 @@ function upload_check(id){
 %>
 	  <div class="footer-area deepdark">
 <%
+	final String database_name = selected_database.getName();
+	final String table_name = selected_table.getName();
 	if (writable)
 	{
-		final String database_name = selected_database.getName();
-		final String table_name = selected_table.getName();
 		final String renumbering_column_name = selected_table.getRenumberingColumn();
 		if (ManagedColumn.getTable().hasRow(columns, renumbering_column_name))
 		{
@@ -1064,8 +1118,6 @@ function upload_check(id){
 	}
 	if (downloadable)
 	{
-		final String database_name = selected_database.getName();
-		final String table_name = selected_table.getName();
 %>		<!-- ダウンロードフォーム -->
 		<form action="<%= url %>" method="post" style="display: inline; white-space: nowrap;">
 			<input type="hidden" name="operator" value="<%= operator_name %>"/>
@@ -1078,8 +1130,6 @@ function upload_check(id){
 	}
 	if (uploadable)
 	{
-		final String database_name = selected_database.getName();
-		final String table_name = selected_table.getName();
 %>		<!-- アップロードフォーム -->
 		<form action="<%= url %>" method="post" enctype="multipart/form-data" style="display: inline; white-space: nowrap;">
 			<input type="hidden" name="operator" value="<%= operator_name %>"/>
@@ -1093,8 +1143,6 @@ function upload_check(id){
 	}
 	if (downloadable)
 	{
-		final String database_name = selected_database.getName();
-		final String table_name = selected_table.getName();
 %>		<!-- ダウンロードフォーム -->
 		<form action="<%= url %>" method="post" style="display: inline; white-space: nowrap;">
 			<input type="hidden" name="operator" value="<%= operator_name %>"/>
@@ -1107,8 +1155,6 @@ function upload_check(id){
 	}
 	if (uploadable)
 	{
-		final String database_name = selected_database.getName();
-		final String table_name = selected_table.getName();
 %>		<!-- アップロードフォーム -->
 		<form action="<%= url %>" method="post" enctype="multipart/form-data" style="display: inline; white-space: nowrap;">
 			<input type="hidden" name="operator" value="<%= operator_name %>"/>
@@ -1124,7 +1170,10 @@ function upload_check(id){
 	{
 %>		<!-- pull request フォーム -->
 		<form action="<%= url %>" method="post" enctype="multipart/form-data" style="display: inline; white-space: nowrap;">
-			<input type="hidden" name="url" value="http://cmt/commit/root"/>
+			<input type="hidden" name="operator" value="<%= operator_name %>"/>
+			<input type="hidden" name="database" value="<%= database_name %>"/>
+			<input type="hidden" name="table" value="<%= table_name %>"/>
+			<input type="hidden" name="url" value="http://cmt:8888/commit/<%= operator_name %>"/>
 			<input type="submit" name="proxy-request" value="Pull Request" title="Pull Request" onClick="return confirm('現在のデータをPull Requestします。よろしいですか？')"/>
 		</form>
 <%

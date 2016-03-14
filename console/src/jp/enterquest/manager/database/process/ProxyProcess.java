@@ -29,7 +29,7 @@ public final class ProxyProcess extends Process implements HttpClientDelegate
 {
 	String url;
 	String method;
-	HttpClientResponse resp;
+	HttpServerResponse resp;
 	/**
 	 * コンストラクタ
 	 * @param server HTTPサーバ
@@ -48,15 +48,16 @@ public final class ProxyProcess extends Process implements HttpClientDelegate
 	public final void run(final HttpServerRequest request, final HttpServerResponse response)
 	{
 		final Logger logger = this.getLogger(LoggerName.OPTION);
+		final String request_client = request.getRemoteAddr();
+		final String request_operator_name = this.getOperatorName(request);
 		try
 		{
 			final HttpClient client = HttpClient.newInstance();
-			this.url = this.getString(request, "url");
-			this.method = this.getString(request, "method", "GET");
+			this.url = request.getParameter("url").asString();
+			logger.info("client=%s operator=%s : requests %s.", request_client, request_operator_name, this.url);
+			this.resp = response;
 			client.setDelegate(this);
 			client.connect();
-
-			this.WriteResponse(response, this.resp.getStream());
 		}
 		catch (final RuntimeException cause)
 		{
@@ -70,17 +71,11 @@ public final class ProxyProcess extends Process implements HttpClientDelegate
 	/**
 	 * implements HttpClientDelegate
 	 */
-    public void onRequest(HttpClientRequest httpclientrequest) {
-/*    	if (this.method.equals("GET")) {
-	    	httpclientrequest.setMethod(HttpMethod.GET);
-    	}
-    	else if (this.method.equals("POST")) {
-    		httpclientrequest.setMethod(HttpMethod.POST);
-    	}*/
-    	httpclientrequest.setUrl(this.url);
+    public void onRequest(HttpClientRequest req) {
+    	req.setUrl(this.url);
     }
 
-    public void onResponse(HttpClientResponse httpclientresponse) {
-    	this.resp = httpclientresponse;
+    public void onResponse(HttpClientResponse resp) {
+		this.WriteResponse(this.resp, resp.getStream());
     }
 }

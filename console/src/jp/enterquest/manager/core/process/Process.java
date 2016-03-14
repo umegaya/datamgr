@@ -104,6 +104,33 @@ public abstract class Process
 		}
 	}
 
+	/**
+	 * オペレータ名を取得する
+	 * @param request HTTPサーバリクエスト
+	 * @return オペレータ名
+	 */
+	protected final String getOperatorName(final HttpServerRequest request)
+	{
+		final String content_type = request.getHeader("content-type").asString().toLowerCase();
+		if (content_type.equals(MimeType.APPLICATION_XWWWFORMURLENCODED.getName()))
+		{
+			return request.getParameter("operator").asString();
+		}
+		final ReaderStream stream = request.getPart("operator").getStream();
+		try
+		{
+			final TextReader reader = stream.getTextReader(CharacterEncoding.UTF_8);
+			return reader.readLine();
+		}
+		finally
+		{
+			stream.close();
+		}
+	}
+
+	/**
+	 * ストリームからレスポンスを書き込む
+	 */
 	protected final void WriteResponse(final HttpServerResponse response, final ReaderStream content) {
 		response.setHeader("content-type", MimeType.APPLICATION_OCTETSTREAM.getName());
 		final TextWriter text_writer = response.getStream().getTextWriter(CharacterEncoding.UTF_8, LineSeparator.LF);
