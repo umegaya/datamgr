@@ -3,11 +3,18 @@
  */
 package jp.enterquest.manager.core.process;
 
+import java.io.*;
 import jp.enterquest.system.Database;
 import jp.enterquest.system.HttpServer;
 import jp.enterquest.system.HttpServerRequest;
 import jp.enterquest.system.HttpServerResponse;
+import jp.enterquest.system.CharacterEncoding;
+import jp.enterquest.system.LineSeparator;
+import jp.enterquest.system.MimeType;
 import jp.enterquest.system.Logger;
+import jp.enterquest.system.ReaderStream;
+import jp.enterquest.system.TextReader;
+import jp.enterquest.system.TextWriter;
 import jp.enterquest.system.SqlConnection;
 
 /**
@@ -68,6 +75,53 @@ public abstract class Process
 		{
 			connection.close();
 			throw cause;
+		}
+	}
+
+	/**
+	 * 文字列を取得する
+	 * @param request HTTPサーバリクエスト
+	 * @param name リクエストパート名
+	 * @return 文字列
+	 */
+	protected final String getString(final HttpServerRequest request, final String name) {
+		return this.getString(request, name, null);
+	}
+	protected final String getString(final HttpServerRequest request, final String name, final String defaultValue)
+	{
+		if (!request.hasPart(name)) {
+			return defaultValue;
+		}
+		final ReaderStream stream = request.getPart(name).getStream();
+		try
+		{
+			final TextReader reader = stream.getTextReader(CharacterEncoding.UTF_8);
+			return reader.readLine();
+		}
+		finally
+		{
+			stream.close();
+		}
+	}
+
+	protected final void WriteResponse(final HttpServerResponse response, final ReaderStream content) {
+		response.setHeader("content-type", MimeType.APPLICATION_OCTETSTREAM.getName());
+		final TextWriter text_writer = response.getStream().getTextWriter(CharacterEncoding.UTF_8, LineSeparator.LF);
+		try
+		{
+			final TextReader reader = content.getTextReader(CharacterEncoding.UTF_8);
+			int count = 0;
+			while (reader.canRead()) {
+				count++;
+				text_writer.write(reader.readLine());
+				if (count > 10000) {
+					break;
+				}
+			}
+		}
+		finally
+		{
+			response.getStream().close();
 		}
 	}
 

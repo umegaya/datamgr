@@ -18,6 +18,7 @@ import jp.enterquest.manager.database.process.RenumberProcess;
 import jp.enterquest.manager.database.process.SelectProcess;
 import jp.enterquest.manager.database.process.UpdateProcess;
 import jp.enterquest.manager.database.process.UploadProcess;
+import jp.enterquest.manager.database.process.ProxyProcess;
 import jp.enterquest.system.ConsoleLogger;
 import jp.enterquest.system.Data;
 import jp.enterquest.system.Database;
@@ -208,6 +209,10 @@ public final class DatabaseViewer implements HttpServerDelegate
 			if (request.hasParameter(RequestName.DOWNLOAD))
 			{
 				return new DownloadProcess(this.server);
+			}
+			if (request.hasParameter(RequestName.PROXY))
+			{
+				return new ProxyProcess(this.server);
 			}
 		}
 		else if (content_type.startsWith(MimeType.MULTIPART_FORMDATA.getName()))

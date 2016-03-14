@@ -1120,6 +1120,15 @@ function upload_check(id){
 		</form>
 <%
 	}
+	if (writable)
+	{
+%>		<!-- pull request フォーム -->
+		<form action="<%= url %>" method="post" enctype="multipart/form-data" style="display: inline; white-space: nowrap;">
+			<input type="hidden" name="url" value="http://cmt/commit/root"/>
+			<input type="submit" name="proxy-request" value="Pull Request" title="Pull Request" onClick="return confirm('現在のデータをPull Requestします。よろしいですか？')"/>
+		</form>
+<%
+	}
 %>
 	  </div>
 	</body>

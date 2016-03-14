@@ -2,11 +2,16 @@ console:
   image: 'umegaya/datamgr:latest'
   links:
     - 'source:dms'
+    - 'commiter:cmt'
   ports:
     - '18080:8080'
 source:
   image: 'umegaya/dms:latest'
+  volumes_from:
+    - 'storage'
 commiter:
   image: 'umegaya/dmcommit:latest'
 storage:
-  image: 'umegaya/dmstorage:latest'
+  image: 'busybox'
+  volumes: 
+    - '/var/lib/mysql'

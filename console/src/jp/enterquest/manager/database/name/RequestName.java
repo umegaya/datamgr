@@ -29,6 +29,8 @@ public final class RequestName
 	public static final String UPLOAD = "request-upload";
 	/** SQL実行 */
 	public static final String EXEC_SQL = "exec-sql";
+	/** プロキシリクエスト */
+	public static final String PROXY = "proxy-request";
 
 	/**
 	 * @deprecated

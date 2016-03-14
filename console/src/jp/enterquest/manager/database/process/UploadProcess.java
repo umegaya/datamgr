@@ -234,26 +234,6 @@ public final class UploadProcess extends Process
 	}
 
 	/**
-	 * 文字列を取得する
-	 * @param request HTTPサーバリクエスト
-	 * @param name リクエストパート名
-	 * @return 文字列
-	 */
-	private final String getString(final HttpServerRequest request, final String name)
-	{
-		final ReaderStream stream = request.getPart(name).getStream();
-		try
-		{
-			final TextReader reader = stream.getTextReader(CharacterEncoding.UTF_8);
-			return reader.readLine();
-		}
-		finally
-		{
-			stream.close();
-		}
-	}
-
-	/**
 	 * JSONデータを取得する
 	 * @param request HTTPサーバリクエスト
 	 * @param name リクエストパート名

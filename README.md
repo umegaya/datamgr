@@ -1,7 +1,7 @@
 # datamgr
 - generic game data editor & user data modification tool
 
-# authors
-- oritinal author: Akinori Nishimura
-- generalize, major cleanup, UI improvement: Takehiro Iyatomi & You Aoi
+### authors
+- original author: Akinori Nishimura
+- generalize, dockerize, major cleanup, UI improvement: Takehiro Iyatomi & You Aoi
 

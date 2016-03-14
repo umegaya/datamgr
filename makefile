@@ -1,20 +1,19 @@
 buildtool:
-	@bash tool/META-INF/gen-ctx.sh $(DBNAME) $(PASS)
-	@docker run -v `pwd`/tool:/build webratio/ant bash -c "cd /build/bin && ant mkwar -Dstage=dev"
+	@bash console/META-INF/gen-ctx.sh $(DBNAME) $(PASS)
+	@docker run -v `pwd`/console:/build webratio/ant bash -c "cd /build/bin && ant mkwar -Dstage=dev"
 
 deploy:
 	-docker rm datamgr
 	docker run --rm -ti -p 18080:8080 --name datamgr --link datamgr_source:dms umegaya/datamgr
 
 ct: buildtool
-	docker build -t umegaya/datamgr tool
+	docker build -t umegaya/datamgr console
 
-cm: 
-	bash commiter/alpinehub.sh
-	docker build -t umegaya/dmcommit commiter
+alpinehub:
+	bash commiter/alpinehub.sh	
 
-st:
-	docker build -t umegaya/dmstorage storage
+cm: alpinehub
+	docker build -t umegaya/commiter commiter
 
-all: ct cm st
+all: ct cm
 	echo "done!!"
