@@ -150,13 +150,7 @@ public final class DatabaseViewProcess extends Process
 			final boolean table_enabled = this.isTableEnabled(tables, operator_tables, selected_table_name);
 			final boolean selected = database_enabled && table_enabled;
 
-			final String url = request.getAttribute("url");
-			if (request.hasHeader("X-Forwarded-Proto")) {
-				final String fwdproto = (request.getHeader("X-Forwarded-Proto").asString());
-				url.replaceFirst("^[a-zA-Z0^9]://", fwdproto + "://");
-			}
-			request.setAttribute("baseUrl", url.replaceFirst("/[\\w]+$", ""));
-			logger.info("urls:%s %s", url, request.getAttribute("baseUrl"));
+			Common.setUrlAttribute(request, logger);
 			request.setAttribute("operator-name", request_operator_name);
 			request.setAttribute("menus", menus);
 			request.setAttribute("operator-menus", operator_menus);

@@ -3,6 +3,7 @@
  */
 package jp.enterquest.manager.core.process;
 
+import jp.enterquest.manager.core.data.Common;
 import jp.enterquest.manager.core.name.LoggerName;
 import jp.enterquest.manager.core.name.ResourceName;
 import jp.enterquest.system.HttpServer;
@@ -53,7 +54,7 @@ public final class LoginViewProcess extends Process
 			logger.info("client=%s : login view.", request_client);
 		}
 
-		request.setAttribute("url", request.getRequestUrl());
+		Common.setUrlAttribute(request, logger);
 		return new ForwardProcess(this.getServer(), ResourceName.LOGIN_VIEW);
 	}
 }

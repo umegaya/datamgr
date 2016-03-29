@@ -12,6 +12,7 @@ import jp.enterquest.system.SqlConnection;
 import jp.enterquest.system.SqlOrder;
 import jp.enterquest.system.SqlResult;
 import jp.enterquest.system.SqlStatement;
+import jp.enterquest.system.HttpServerRequest;
 
 import jp.enterquest.system.ConsoleLogger;
 import jp.enterquest.system.Logger;
@@ -741,6 +742,23 @@ public class Common
 		finally
 		{
 			statement.close();
+		}
+	}
+
+	public static void setUrlAttribute(final HttpServerRequest request, final Logger logger) {
+		try {
+			logger.info("setAttribute: statt");
+			String url = request.getRequestUrl();
+			if (request.hasHeader("X-Forwarded-Proto")) {
+				final String fwdproto = (request.getHeader("X-Forwarded-Proto").asString());
+				url = url.replaceFirst("^[a-zA-Z0^9]://", fwdproto + "://");
+			}
+			request.setAttribute("url", url);
+			request.setAttribute("baseUrl", url.replaceFirst("/[\\w]+$", ""));
+			logger.info("urls:%s %s", request.getAttribute("url"), request.getAttribute("baseUrl"));
+		}
+		catch (Exception e) {
+			logger.info("error setUrlAttribute: " + e.getMessage());
 		}
 	}
 }

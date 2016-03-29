@@ -3,6 +3,7 @@
  */
 package jp.enterquest.manager.core.process;
 
+import jp.enterquest.manager.core.data.Common;
 import jp.enterquest.manager.core.data.Operator;
 import jp.enterquest.manager.core.name.DatabaseName;
 import jp.enterquest.manager.core.name.LoggerName;
@@ -72,7 +73,7 @@ public final class PasswordViewProcess extends Process
 				return new LoginViewProcess(this.getServer());
 			}
 
-			request.setAttribute("url", request.getRequestUrl());
+			Common.setUrlAttribute(request, logger);
 			request.setAttribute("operator-name", request_operator_name);
 			return new ForwardProcess(this.getServer(), ResourceName.PASSWORD_VIEW);
 		}

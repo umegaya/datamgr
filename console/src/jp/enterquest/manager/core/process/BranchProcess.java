@@ -3,6 +3,7 @@
  */
 package jp.enterquest.manager.core.process;
 
+import jp.enterquest.manager.core.data.Common;
 import jp.enterquest.manager.core.data.Menu;
 import jp.enterquest.manager.core.data.Operator;
 import jp.enterquest.manager.core.data.OperatorMenu;
@@ -108,12 +109,12 @@ public final class BranchProcess extends Process
 				if (operator_menu.isSelected() && operator_menu.isReadable())
 				{
 					final Menu.Row menu = Menu.getTable().findRow(menus, operator_menu.getMenu());
-					request.setAttribute("url", request.getRequestUrl());
+					Common.setUrlAttribute(request, logger);
 					return new ForwardProcess(this.getServer(), menu.getPath());
 				}
 			}
 
-			request.setAttribute("url", request.getRequestUrl());
+			Common.setUrlAttribute(request, logger);
 			request.setAttribute("operator-name", request_operator_name);
 			request.setAttribute("menus", menus);
 			request.setAttribute("operator-menus", operator_menus);

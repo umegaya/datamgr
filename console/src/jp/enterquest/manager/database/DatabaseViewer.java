@@ -146,12 +146,12 @@ public final class DatabaseViewer implements HttpServerDelegate
 		final Logger logger = this.getLogger(LoggerName.OPTION);
 		try
 		{
-			if (!request.hasAttribute("url"))
+/*			if (!request.hasAttribute("url"))
 			{
 				final String client_address = request.getRemoteAddr();
 				logger.warning("client=%s : access denied.", client_address);
 				return;
-			}
+			} */
 
 			final Process process = this.newProcess(request);
 			process.run(request, response);
