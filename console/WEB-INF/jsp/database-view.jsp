@@ -295,11 +295,12 @@ $(function() {
 		//console.log("TODO: オプション要素をロードして中に入れ込む:" + table);
 		if (table != null) {
 			var elem = $(this).children();
+			var value = elem.attr("value");
 			var options = $("#option_cache_" + table).children().removeAttr("selected");
 			$(this).html(options);
 			if (elem.length > 0) {
-				//console.log("attr:" + elem.attr("value"));
-				var matched = $(this).children("[value=" + elem.attr("value") + "]")
+				var matched = $(this).children("[value=" + value + "]");
+				console.log("matchlen:" + matched.length + "|" + value);
 				if (matched.length > 0) {
 					matched.attr("selected", true);
 				}
@@ -383,7 +384,7 @@ function on_pull_request() {
 var updateInfo = {
 	version: null,
 	error: false,
-	confirm: false,
+	confirm: false,	
 	onajax: false,
 };
 setInterval(function () {
@@ -843,6 +844,10 @@ setInterval(function () {
 					cached_options.set(parent_table_name, true);
 %>					<div id="option_cache_<%= parent_table_name %>" style="display:none;">
 <%
+					if (information_column.isNullable()) {
+%><option value="" label="(null)"/>
+<%
+					}
 					for (final Data parent_row : parent_rows.asArray())
 					{
 						final String parent_column_value = HtmlEncoder.getInstance().encode(parent_row.asHash().get(parent_column_name).asString());
@@ -1011,9 +1016,8 @@ setInterval(function () {
 							if (matched)
 							{
 								dead_link = false;
-							}
-%>							<option value="" label="(null)"<%= item_selected %><%= disabled %>/>
-<%
+%>								<option value="" label="(null)"/>
+<%							}
 						}
 						for (final Data parent_row : parent_rows.asArray())
 						{
