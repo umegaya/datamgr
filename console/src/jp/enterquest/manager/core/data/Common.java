@@ -751,11 +751,11 @@ public class Common
 			String url = request.getRequestUrl();
 			if (request.hasHeader("X-Forwarded-Proto")) {
 				final String fwdproto = (request.getHeader("X-Forwarded-Proto").asString());
-				url = url.replaceFirst("^[a-zA-Z0^9]://", fwdproto + "://");
+				url = url.replaceFirst("^[\\w]+://", fwdproto + "://");
 			}
 			request.setAttribute("url", url);
 			request.setAttribute("baseUrl", url.replaceFirst("/[\\w]+$", ""));
-			logger.info("urls:%s %s", request.getAttribute("url"), request.getAttribute("baseUrl"));
+			//logger.info("urls:%s %s %s", request.getAttribute("url"), request.getAttribute("baseUrl"), request.getHeader("X-Forwarded-Proto").asString());
 		}
 		catch (Exception e) {
 			logger.info("error setUrlAttribute: " + e.getMessage());
