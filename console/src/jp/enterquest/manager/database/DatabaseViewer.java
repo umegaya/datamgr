@@ -19,6 +19,7 @@ import jp.enterquest.manager.database.process.SelectProcess;
 import jp.enterquest.manager.database.process.UpdateProcess;
 import jp.enterquest.manager.database.process.UploadProcess;
 import jp.enterquest.manager.database.process.ProxyProcess;
+import jp.enterquest.system.CharacterEncoding;
 import jp.enterquest.system.ConsoleLogger;
 import jp.enterquest.system.Data;
 import jp.enterquest.system.Database;
@@ -152,6 +153,7 @@ public final class DatabaseViewer implements HttpServerDelegate
 				logger.warning("client=%s : access denied.", client_address);
 				return;
 			} */
+			request.setEncoding(CharacterEncoding.UTF_8);
 
 			final Process process = this.newProcess(request);
 			process.run(request, response);

@@ -3,6 +3,7 @@
 clean_repository() {
         git reset --hard && git clean -d -f
         git checkout master
+        git pull
 }
 
 make_pull_request() {
@@ -11,12 +12,12 @@ make_pull_request() {
         git commit -a -m "commit masterdata by $1"
         git push origin HEAD:$branch
         # make pull request
-        hub pull-request -b master -h $branch -m "commit masterdata"
+        hub pull-request -b master -h $branch -m "$2"
 }
 
 cd repo
         clean_repository
-        bash /scripts/modify.sh
-        out=`make_pull_request $1`
+        msg=`bash /scripts/modify.sh`
+        out=`make_pull_request $1 $msg`
 	echo $out
         

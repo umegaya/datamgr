@@ -747,7 +747,6 @@ public class Common
 
 	public static void setUrlAttribute(final HttpServerRequest request, final Logger logger) {
 		try {
-			logger.info("setAttribute: statt");
 			String url = request.getRequestUrl();
 			if (request.hasHeader("X-Forwarded-Proto")) {
 				final String fwdproto = (request.getHeader("X-Forwarded-Proto").asString());

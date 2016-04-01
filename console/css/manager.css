@@ -264,7 +264,26 @@ table th
 {
 	text-align: right;
 }
-
+.loading
+{
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	text-align: center;
+	z-index: 10;
+	position: absolute;
+	background-color: #fff;
+	pointer-events: none;
+}
+.loading .caption
+{
+	font-size: 200%;
+}
+.loading.show
+{
+	opacity: 0.8;
+	pointer-events: auto;
+}
 
 
 /*============================*/

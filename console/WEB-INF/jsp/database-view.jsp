@@ -352,6 +352,7 @@ function upload_check(id){
 function on_pull_request() {
 	if (!confirm("現在の修正内容でpull requestを作成します。よろしいですか？")) return;
 	$('#pull-request').addClass("disabled");
+	$('.loading').addClass("show");
 	$.ajax({
 		url: '<%= url %>',
 		contentType : "application/x-www-form-urlencoded",
@@ -359,6 +360,7 @@ function on_pull_request() {
 		dataType: 'text',
 		data: {"proxy-request":"pull request", "url":"http://cmt:8888/commit/<%= operator_name %>", "operator":"<%= operator_name %>"},
 		success: function (data, status, req) {
+			$('.loading').removeClass("show");
 			if (data.match(/^error:/)) {
 				alert(data);
 			}
@@ -374,6 +376,7 @@ function on_pull_request() {
 			}
 		},
 		error: function (req, status, error) {
+			$('.loading').removeClass("show");
 			console.log('失敗' + error);
 		}
 	});
@@ -450,6 +453,7 @@ setInterval(function () {
 		</script>
 	</head>
 	<body>
+	  <div class="loading"><div class="caption">リクエスト実行中...</div></div>
 	  <div class="header-area deepdark">
 	  <div class="main-menu">
 		<!-- メインメニューフォーム -->
