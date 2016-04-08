@@ -8,6 +8,7 @@ RUN apk add --update socat && \
 	apk add --update mysql-client && \
 	apk add --update git && \
 	apk add --update bash && \
+	apk add --update ruby && \
 	rm -rf /var/cache/apk/*
 
 ADD hub /usr/local/bin/hub
