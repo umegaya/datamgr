@@ -18,8 +18,11 @@ import jp.enterquest.system.HttpClient;
 import jp.enterquest.system.HttpClientRequest;
 import jp.enterquest.system.HttpClientResponse;
 import jp.enterquest.system.HttpClientDelegate;
+import jp.enterquest.system.HttpMethod;
 import jp.enterquest.system.ReaderStream;
 import jp.enterquest.system.Logger;
+import jp.enterquest.system.CharacterEncoding;
+import jp.enterquest.system.LineSeparator;
 
 /**
  * 別のところへのリクエストを中継する クラス
@@ -28,7 +31,7 @@ import jp.enterquest.system.Logger;
 public final class ProxyProcess extends Process implements HttpClientDelegate
 {
 	String url;
-	String method;
+	String data;
 	HttpServerResponse resp;
 	/**
 	 * コンストラクタ
@@ -54,7 +57,8 @@ public final class ProxyProcess extends Process implements HttpClientDelegate
 		{
 			final HttpClient client = HttpClient.newInstance();
 			this.url = request.getParameter("url").asString();
-			logger.info("client=%s operator=%s : requests %s.", request_client, request_operator_name, this.url);
+			this.data = request.hasParameter("data") ? request.getParameter("data").asString() : "";
+			logger.info("client=%s operator=%s : requests %s[%s].", request_client, request_operator_name, this.url, this.data);
 			this.resp = response;
 			client.setDelegate(this);
 			client.connect();
@@ -79,6 +83,10 @@ public final class ProxyProcess extends Process implements HttpClientDelegate
 	 */
     public void onRequest(HttpClientRequest req) {
     	req.setUrl(this.url);
+    	if (!this.data.equals("")) {
+    		req.setMethod(HttpMethod.POST);
+    		req.getStream().getTextWriter(CharacterEncoding.UTF_8, LineSeparator.LF).write(this.data);
+    	}
     }
 
     public void onResponse(HttpClientResponse resp) {

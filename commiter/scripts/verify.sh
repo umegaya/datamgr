@@ -1,1 +1,1 @@
-curl -k https://dms/debug/verify.php -d "$1"
+curl -k https://dms/debug/verify.php -d "data=$1"

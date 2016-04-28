@@ -167,6 +167,35 @@ $(function() {
 		elms[elms.index(this) + 1].focus();
 		return false;
 	});
+	//現在送信したいデータを作業用フォームにコピーする.
+	//serialize == trueだとserializeしてくれる.
+	function attach_current_form(elem, attach_to, serialize) {
+		daf.empty();
+		var parent = elem.parents("tr");
+		parent.find("input").each(function (){
+			if (this.type == "button") return;
+			var inp = $(this).clone().val($(this).val());
+			daf.append(inp);
+		});
+		parent.find("select, textarea").each(function (){
+			daf.append($(this).clone().val($(this).val()));
+		});
+		daf.append(attach_to);
+		if (serialize) {
+			return daf.serialize();
+		}
+		return null;
+	}
+	function formdata_to_row(formdata) {
+		var ret = {};
+		formdata.replace(/([^=&]+)=([^=&]+)/gm, function (m, k, v) {
+			if (k.startsWith("column%3A")) {
+				k = k.replace(/^column%3A/, "");
+				ret[k] = v;
+			}
+		});
+		return ret;
+	}
 	da.find('input[type=text], input[type=checkbox], select, textarea').keydown(function (e) {
 		if (e.ctrlKey || e.altKey) {
 			var fact = 1;
@@ -216,37 +245,54 @@ $(function() {
 		}).animate({
 			shadow: '0 0 0 #fff'
 		}); 
-	}).on("change", function (e) {
-		$(this).parents("tr").addClass('dirty');
+	}).on("change", function (e, changed) {
+		var form = $(this).parents("tr");
+		var input = $(form).find("input.update");
+		var formdata = formdata_to_row(attach_current_form($(input), daiu, true));
+		//console.log("formdata = " + JSON.stringify(formdata));
+		$.ajax({
+			url: '<%= url %>',
+			contentType : "application/x-www-form-urlencoded",
+			type: 'POST',
+			dataType: 'text',
+			data: {
+				"proxy-request":"verify row", 
+				"url":"http://cmt:8888/verify", 
+				"operator":"<%= operator_name %>", 
+				"data": encodeURIComponent(JSON.stringify({
+					table:"<%= selected_table.getName() %>",
+					row: formdata,
+				})),
+			},
+			success: function (data, status, req) {
+				$('.loading').removeClass("show");
+				if (data.indexOf("error") >= 0) {
+					//TODO: show error by somehow
+					console.log("data verification fails: " + data);
+					form.removeClass('dirty');
+					form.addClass('update-error');
+					form.attr("title", data);
+				}
+				else {
+					form.removeClass('update-error');
+					form.addClass('dirty');
+					form.removeAttr("title");
+				}
+			},
+			error: function (req, status, error) {
+				$('.loading').removeClass("show");
+				console.log('失敗' + error);
+			}
+		});
 	});
 	da.find("input.update").click(function (e) {
-		daf.empty();
-		var parent = $(this).parents("tr");
-		parent.find("input").each(function (){
-			if (this.type == "button") return;
-			var inp = $(this).clone().val($(this).val());
-			daf.append(inp);
-		});
-		parent.find("select, textarea").each(function (){
-			daf.append($(this).clone().val($(this).val()));
-		});
-		daf.append(daiu);
+		attach_current_form($(this), daiu);
 		daf.trigger("jsubmit", this);
 	});
 	da.find("input.delete").click(function (e) {
 		if (! confirm('Are you sure you want to delete this row?\nこの行を削除してもよろしいですか？')) return;
 
-		daf.empty();
-		var parent = $(this).parents("tr");
-		parent.find("input").each(function (){
-			if (this.type == "button") return;
-			var inp = $(this).clone().val($(this).val());
-			daf.append(inp);
-		});
-		parent.find("select, textarea").each(function (){
-			daf.append($(this).clone().val($(this).val()));
-		});
-		daf.append(daid);
+		attach_current_form($(this), daid);
 		daf.trigger("jsubmit", this);
 	});
 	iau.bind("update_next", function(ev, dady, cb) {
