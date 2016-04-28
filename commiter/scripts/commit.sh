@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 clean_repository() {
         git reset --hard && git clean -d -f
@@ -9,6 +9,7 @@ clean_repository() {
 make_pull_request() {
         local branch=$1/autocommit-`date +%s`
         git checkout -b $branch
+        git add .
         git commit -a -m "commit masterdata by $1"
         git push origin HEAD:$branch
         # make pull request
@@ -18,6 +19,6 @@ make_pull_request() {
 cd repo
         clean_repository
         msg=`bash /scripts/modify.sh`
-        out=`make_pull_request $1 $msg`
+        out=`make_pull_request $1 "$msg"`
 	echo $out
         

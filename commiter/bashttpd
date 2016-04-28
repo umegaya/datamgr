@@ -263,10 +263,8 @@ read -r REQUEST_METHOD REQUEST_URI REQUEST_HTTP_VERSION <<<"$line"
 [ -n "$REQUEST_HTTP_VERSION" ] \
    || fail_with 400
 
-# Only GET is supported at this time
-[ "$REQUEST_METHOD" = "GET" ] || fail_with 405
-
 declare -a REQUEST_HEADERS
+declare BODY_LENGTH
 
 while read -r line; do
    line=${line%%$'\r'}
@@ -276,7 +274,18 @@ while read -r line; do
    [ -z "$line" ] && break
 
    REQUEST_HEADERS+=("$line")
+
+   if [ -z "$BODY_LENGTH" ]; then
+        if [[ $line =~ [Cc]ontent-[Ll]ength:[\ ]*([0-9]+) ]]; then
+                BODY_LENGTH="${BASH_REMATCH[1]}"
+        fi
+   fi
 done
+
+if [ ! -z "$BODY_LENGTH" ]; then
+    declare BODY
+    read -n $BODY_LENGTH BODY
+fi
 
 source "${BASH_SOURCE[0]%/*}"/bashttpd.conf
 fail_with 500
