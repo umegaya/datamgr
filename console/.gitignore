@@ -1,4 +1,4 @@
-*.war
-*.jar
+/*.war
+/*.jar
 .project
 temporary
