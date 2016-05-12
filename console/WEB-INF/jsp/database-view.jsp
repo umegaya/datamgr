@@ -169,7 +169,7 @@ $(function() {
 	});
 	//現在送信したいデータを作業用フォームにコピーする.
 	//serialize == trueだとserializeしてくれる.
-	function attach_current_form(elem, attach_to, serialize) {
+	function attach_current_form(elem, attach_to, serialize, relation_rows) {
 		daf.empty();
 		var parent = elem.parents("tr");
 		parent.find("input").each(function (){
@@ -179,6 +179,9 @@ $(function() {
 		});
 		parent.find("select, textarea").each(function (){
 			daf.append($(this).clone().val($(this).val()));
+			if (relation_rows && $(this).hasClass('dyn-select')) {
+				relation_rows.push($(this).attr('name'));
+			}
 		});
 		daf.append(attach_to);
 		if (serialize) {
@@ -186,12 +189,18 @@ $(function() {
 		}
 		return null;
 	}
-	function formdata_to_row(formdata) {
+	function formdata_to_row(formdata, relation_rows) {
 		var ret = {};
-		formdata.replace(/([^=&]+)=([^=&]+)/gm, function (m, k, v) {
+		formdata.replace(/([^=&]+)=([^=&]*)/gm, function (m, k, v) {
 			if (k.startsWith("column%3A")) {
+				//!v => v is empty string
+				emptyRelation = !v && (relation_rows.filter(function (e) { return e.includes(k); }).length >= 0);
 				k = k.replace(/^column%3A/, "");
-				ret[k] = v;
+				if (emptyRelation) {
+					ret[k] = null;
+				} else {
+					ret[k] = v;
+				}
 			}
 		});
 		return ret;
@@ -248,7 +257,8 @@ $(function() {
 	}).on("change", function (e, changed) {
 		var form = $(this).parents("tr");
 		var input = $(form).find("input.update");
-		var formdata = formdata_to_row(attach_current_form($(input), daiu, true));
+		var relation_rows = [];
+		var formdata = formdata_to_row(attach_current_form($(input), daiu, true, relation_rows), relation_rows);
 		//console.log("formdata = " + JSON.stringify(formdata));
 		$.ajax({
 			url: '<%= url %>',
