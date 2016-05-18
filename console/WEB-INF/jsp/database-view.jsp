@@ -169,18 +169,23 @@ $(function() {
 	});
 	//現在送信したいデータを作業用フォームにコピーする.
 	//serialize == trueだとserializeしてくれる.
-	function attach_current_form(elem, attach_to, serialize, relation_rows) {
+	function attach_current_form(elem, attach_to, serialize, empty_values) {
 		daf.empty();
 		var parent = elem.parents("tr");
 		parent.find("input").each(function (){
 			if (this.type == "button") return;
 			var inp = $(this).clone().val($(this).val());
 			daf.append(inp);
+			if (empty_values && ($(this).attr('type') == 'checkbox')) {
+				//checkboxはbooleanとして振舞うように値を設定する.
+				empty_values[$(this).attr('name')] = $(this).prop('checked');
+			}
 		});
 		parent.find("select, textarea").each(function (){
 			daf.append($(this).clone().val($(this).val()));
-			if (relation_rows && $(this).hasClass('dyn-select')) {
-				relation_rows.push($(this).attr('name'));
+			if (empty_values && $(this).hasClass('dyn-select') && !$(this).val()) {
+				//relationがあり、値が入っていない場合はnullとして扱う必要がある
+				empty_values[$(this).attr('name')] = null;
 			}
 		});
 		daf.append(attach_to);
@@ -189,20 +194,22 @@ $(function() {
 		}
 		return null;
 	}
-	function formdata_to_row(formdata, relation_rows) {
+	function formdata_to_row(formdata, empty_values) {
 		var ret = {};
 		formdata.replace(/([^=&]+)=([^=&]*)/gm, function (m, k, v) {
 			if (k.startsWith("column%3A")) {
-				//!v => v is empty string
-				emptyRelation = !v && (relation_rows.filter(function (e) { return e.includes(k); }).length >= 0);
 				k = k.replace(/^column%3A/, "");
-				if (emptyRelation) {
-					ret[k] = null;
-				} else {
-					ret[k] = v;
-				}
+				ret[k] = v;
 			}
 		});
+		//empty_valuesがあれば、それで上書きする.
+		if (empty_values) {
+			//empty_valuesのkeyはattr('name')なのでurlencodeされていない.
+			for (var k in empty_values) {
+				var kk = k.replace(/^column:/, "");
+				ret[kk] = empty_values[k];
+			}
+		}
 		return ret;
 	}
 	da.find('input[type=text], input[type=checkbox], select, textarea').keydown(function (e) {
@@ -257,8 +264,8 @@ $(function() {
 	}).on("change", function (e, changed) {
 		var form = $(this).parents("tr");
 		var input = $(form).find("input.update");
-		var relation_rows = [];
-		var formdata = formdata_to_row(attach_current_form($(input), daiu, true, relation_rows), relation_rows);
+		var empty_values = {};
+		var formdata = formdata_to_row(attach_current_form($(input), daiu, true, empty_values), empty_values);
 		//console.log("formdata = " + JSON.stringify(formdata));
 		$.ajax({
 			url: '<%= url %>',

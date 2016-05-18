@@ -43,11 +43,14 @@ public final class CSVEncoder
     protected final void writeFirstLine(StringWriter writer, Data line) {
         String columnLine = "";
         String firstLine = "";
+        boolean first = true;
         for (Iterator it = line.asHash().iterator(); it.hasNext();) {
+            String sep = (first ? "" : SEP);
+            first = false;
             Object k = it.next();
             Data v = (Data)line.asHash().get(k.toString());
-            columnLine += (k + SEP);
-            firstLine += (convertToString(v) + SEP);
+            columnLine += (sep + k);
+            firstLine += (sep + convertToString(v));
         }
         writer.write(columnLine); writer.write('\n');
         writer.write(firstLine);writer.write('\n');
@@ -55,10 +58,13 @@ public final class CSVEncoder
 
     protected final void writeLine(StringWriter writer, Data line) {
         String csvLine = "";
+        boolean first = true;
         for (Iterator it = line.asHash().iterator(); it.hasNext();) {
+            String sep = (first ? "" : SEP);
+            first = false;
             Object k = it.next();
             Data v = (Data)line.asHash().get(k.toString());
-            csvLine += (convertToString(v) + SEP);
+            csvLine += (sep + convertToString(v));
         }
         writer.write(csvLine);writer.write('\n');   
     }
