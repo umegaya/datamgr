@@ -1,7 +1,7 @@
 #!/bin/bash
 
 dir=`dirname $0`
-ver=`mysql -u root -psanel -h dms manager -e "select * from version;"`
+ver=`mysql -u root -psanel -h dms manager -s -e "select * from version;"`
 if [ "$?" != "0" ]; then
 	mysql -u root -psanel -h dms -e "create database if not exists manager;"
 	ver="0"
