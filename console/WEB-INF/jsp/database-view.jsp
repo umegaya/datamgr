@@ -266,6 +266,10 @@ $(function() {
 		var input = $(form).find("input.update");
 		var empty_values = {};
 		var formdata = formdata_to_row(attach_current_form($(input), daiu, true, empty_values), empty_values);
+		if ("<%= selected_operator_database.getDatabase() %>" == "manager") {
+			form.addClass('dirty');
+			return;
+		}
 		//console.log("formdata = " + JSON.stringify(formdata));
 		$.ajax({
 			url: '<%= url %>',
