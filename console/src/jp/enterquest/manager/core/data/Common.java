@@ -697,7 +697,7 @@ public class Common
 			{
 				return factory.newString("2000-01-01 00:00:00");
 			}
-			else if (column.isChar() || column.isVarchar() || column.isText())
+			else if (column.isChar() || column.isVarchar() || column.isText() || column.isBlob())
 			{
 				return factory.newString("");
 			}

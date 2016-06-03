@@ -505,6 +505,15 @@ public class InformationColumn
 		}
 
 		/**
+		 * データタイプがBLOB型かどうかを取得する
+		 * @return データタイプがTEXT型の場合はtrueを返す
+		 */
+		public final boolean isBlob()
+		{
+			return this.data_type.equalsIgnoreCase("blob");
+		}
+
+		/**
 		 * 照合名を取得する
 		 * @return 照合名
 		 */
