@@ -114,9 +114,12 @@ $(function() {
 	});
 	var update_index = 0;
 	var da = $('div.data-area');
+	var wa = $('div.write-area');
 	var daf = da.find("form");
+	var waf = wa.find("form");
 	var daiu = da.find("input[name=request-update]");
 	var daid = da.find("input[name=request-delete]");
+	var daii = da.find("input[name=request-insert]");
 	var iau = $("#all-update");
 	var ag = $("#apply-game");
 	var ds = $('.dyn-select');
@@ -169,28 +172,28 @@ $(function() {
 	});
 	//現在送信したいデータを作業用フォームにコピーする.
 	//serialize == trueだとserializeしてくれる.
-	function attach_current_form(elem, attach_to, serialize, empty_values) {
-		daf.empty();
+	function attach_current_form(elem, attach_to, form, serialize, empty_values) {
+		form.empty();
 		var parent = elem.parents("tr");
 		parent.find("input").each(function (){
 			if (this.type == "button") return;
 			var inp = $(this).clone().val($(this).val());
-			daf.append(inp);
+			form.append(inp);
 			if (empty_values && ($(this).attr('type') == 'checkbox')) {
 				//checkboxはbooleanとして振舞うように値を設定する.
 				empty_values[$(this).attr('name')] = $(this).prop('checked');
 			}
 		});
 		parent.find("select, textarea").each(function (){
-			daf.append($(this).clone().val($(this).val()));
+			form.append($(this).clone().val($(this).val()));
 			if (empty_values && $(this).hasClass('dyn-select') && !$(this).val()) {
 				//relationがあり、値が入っていない場合はnullとして扱う必要がある
 				empty_values[$(this).attr('name')] = null;
 			}
 		});
-		daf.append(attach_to);
+		form.append(attach_to);
 		if (serialize) {
-			return daf.serialize();
+			return form.serialize();
 		}
 		return null;
 	}
@@ -211,6 +214,65 @@ $(function() {
 			}
 		}
 		return ret;
+	}
+	var no_column_key = ["operator", "database", "table"];
+	function row_to_formdata(row) {
+		var data = [];
+		for (var k in row) {
+			var v = row[k];
+			//console.log("kv:" + k + "|" + v + "|" + typeof(v));
+			if (k.startsWith("request") || no_column_key.indexOf(k) >= 0) {
+			} else {
+				k = "column:" + k;
+			}
+			if (v === null) {
+				v = "";
+			} else if (v === false) {
+				//checkboxがoffだったということなのでformdataに含めない.
+				continue
+			} else if (v === true) {
+				v = 1;
+			}
+			data.push(encodeURIComponent(k)+"="+encodeURIComponent(v));
+		}
+		return data.join('&');
+	}
+	function verify_formdata(elem, attach_to, form, successCB, errorCB) {
+		var empty_values = {};
+		var formdata = formdata_to_row(attach_current_form($(elem), daiu, form, true, empty_values), empty_values);
+		if ("<%= selected_operator_database.getDatabase() %>" == "manager") {
+			successCB(formdata);
+			return;
+		}
+		//console.log("formdata = " + JSON.stringify(formdata));
+		$.ajax({
+			url: '<%= url %>',
+			contentType : "application/x-www-form-urlencoded",
+			type: 'POST',
+			dataType: 'text',
+			data: {
+				"proxy-request":"verify row", 
+				"url":"http://cmt:8888/verify", 
+				"operator":"<%= operator_name %>", 
+				"data": encodeURIComponent(JSON.stringify({
+					table:"<%= selected_table.getName() %>",
+					row: formdata,
+				})),
+			},
+			success: function (data, status, req) {
+				$('.loading').removeClass("show");
+				if (data.indexOf("error") >= 0) {
+					errorCB(data);
+				}
+				else {
+					successCB(formdata);
+				}
+			},
+			error: function (req, status, error) {
+				$('.loading').removeClass("show");
+				errorCB(error);
+			}
+		});		
 	}
 	da.find('input[type=text], input[type=checkbox], select, textarea').keydown(function (e) {
 		if (e.ctrlKey || e.altKey) {
@@ -264,56 +326,60 @@ $(function() {
 	}).on("change", function (e, changed) {
 		var form = $(this).parents("tr");
 		var input = $(form).find("input.update");
-		var empty_values = {};
-		var formdata = formdata_to_row(attach_current_form($(input), daiu, true, empty_values), empty_values);
-		if ("<%= selected_operator_database.getDatabase() %>" == "manager") {
+		verify_formdata(input, daiu, daf, function (row) {
+			form.removeClass('update-error');
 			form.addClass('dirty');
-			return;
-		}
-		//console.log("formdata = " + JSON.stringify(formdata));
-		$.ajax({
-			url: '<%= url %>',
-			contentType : "application/x-www-form-urlencoded",
-			type: 'POST',
-			dataType: 'text',
-			data: {
-				"proxy-request":"verify row", 
-				"url":"http://cmt:8888/verify", 
-				"operator":"<%= operator_name %>", 
-				"data": encodeURIComponent(JSON.stringify({
-					table:"<%= selected_table.getName() %>",
-					row: formdata,
-				})),
-			},
-			success: function (data, status, req) {
-				$('.loading').removeClass("show");
-				if (data.indexOf("error") >= 0) {
-					//TODO: show error by somehow
-					console.log("data verification fails: " + data);
-					form.removeClass('dirty');
-					form.addClass('update-error');
-					form.attr("title", data);
-				}
-				else {
-					form.removeClass('update-error');
-					form.addClass('dirty');
-					form.removeAttr("title");
-				}
-			},
-			error: function (req, status, error) {
-				$('.loading').removeClass("show");
-				console.log('失敗' + error);
-			}
+			form.removeAttr("title");
+		}, function (err) {
+			console.log("data verification fails: " + err);
+			form.removeClass('dirty');
+			form.addClass('update-error');
+			form.attr("title", err);
 		});
 	});
 	da.find("input.update").click(function (e) {
-		attach_current_form($(this), daiu);
+		attach_current_form($(this), daiu, daf);
 		daf.trigger("jsubmit", this);
+	});
+	wa.find("input.insert").click(function (e) {
+		e.preventDefault();
+		var form = $(this).parents("tr");
+		verify_formdata($(this), daii, waf, function (row) {
+			form.removeClass('update-error');
+			form.addClass('dirty');
+			form.removeAttr("title");
+			row["request-insert"] = "insert";
+			row["operator"] = "<%= operator_name %>";
+			row["database"] = "<%= selected_database.getName() %>";	
+			row["table"] = "<%= selected_table.getName() %>";
+			$.ajax({
+				url: '<%= url %>',
+				data: row_to_formdata(row),
+				cache: false,
+				processData: false,
+				contentType : "application/x-www-form-urlencoded",
+				type: 'POST',
+				dataType: 'text',
+				success: function (data, status, req) {
+					console.log('成功:' + data.length);
+					location.reload();
+				},
+				error: function (req, status, error) {
+					console.log('失敗');
+					location.reload();
+				}
+			});
+		}, function (err) {
+			console.log("insert: data verification fails: " + err);
+			form.removeClass('dirty');
+			form.addClass('update-error');
+			form.attr("title", err);
+		});
 	});
 	da.find("input.delete").click(function (e) {
 		if (! confirm('Are you sure you want to delete this row?\nこの行を削除してもよろしいですか？')) return;
 
-		attach_current_form($(this), daid);
+		attach_current_form($(this), daid, daf);
 		daf.trigger("jsubmit", this);
 	});
 	iau.bind("update_next", function(ev, dady, cb) {
@@ -980,7 +1046,7 @@ setInterval(function () {
 		}
 %>		
 			<td>
-				<input type="submit" name="request-insert" value="Add" title="追加"/>
+				<input class="insert" type="submit" name="request-insert" value="Add" title="追加"/>
 			</td>
 		</form>
 		</tr>

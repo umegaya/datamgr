@@ -255,7 +255,7 @@ table th
 	background: #5555ff;
 	border-color: #0000ff;
 }
-.data-area table tr.update-error
+.data-area table tr.update-error, .write-area table tr.update-error
 {
 	background: #ff5555;
 	border-color: #ff0000;
