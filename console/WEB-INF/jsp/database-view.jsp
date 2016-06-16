@@ -274,7 +274,7 @@ $(function() {
 			}
 		});		
 	}
-	var numericRegex = /[0-9\.\b\x25\x26\x27\x28\x09]/;
+	var numericRegex = /[0-9\b\xbe\x25\x26\x27\x28\x0d\x09]/;
 	da.find('input[type=text], input[type=checkbox], select, textarea').keydown(function (e) {
 		if (e.ctrlKey || e.altKey) {
 			var fact = 1;
