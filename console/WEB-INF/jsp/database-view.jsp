@@ -274,6 +274,7 @@ $(function() {
 			}
 		});		
 	}
+	var numericRegex = /[0-9\.\b\x25\x26\x27\x28\x09]/;
 	da.find('input[type=text], input[type=checkbox], select, textarea').keydown(function (e) {
 		if (e.ctrlKey || e.altKey) {
 			var fact = 1;
@@ -304,6 +305,11 @@ $(function() {
 		if (e.altKey || e.shiftKey) ret = true;
 		if (e.keyCode != 13) ret = true;
 		if ($(this).attr("type") == "button") ret = true;
+		if ($(this).hasClass("numeric") && !numericRegex.test(String.fromCharCode(e.keyCode))) {
+			console.log("numeric but non numeric input");
+			e.preventDefault();
+			return false;
+		}
 		if (ret) return true;
 
 		e.preventDefault();
@@ -425,11 +431,12 @@ $(function() {
 	});
 	ds.focus(function () {
 		var table = $(this).attr("linked_table");
+		var nullable = $(this).attr("nullable");
 		//console.log("TODO: オプション要素をロードして中に入れ込む:" + table);
 		if (table != null) {
 			var elem = $(this).children();
 			var value = elem.attr("value");
-			var options = $("#option_cache_" + table).children().removeAttr("selected");
+			var options = $("#option_cache_" + table + nullable).children().removeAttr("selected");
 			$(this).html(options);
 			if (elem.length > 0) {
 				var matched = $(this).children("[value=" + value + "]");
@@ -444,8 +451,9 @@ $(function() {
 		//console.log("TODO: オプション要素をあんロード");		
 		var selected = $(this).children(":selected").clone();
 		var table = $(this).attr("linked_table");
+		var nullable = $(this).attr("nullable");
 		if (table != null) {
-			$("#option_cache_" + table).html($(this).children());
+			$("#option_cache_" + table + nullable).html($(this).children());
 		}
 		$(this).html(selected);
 	})
@@ -782,7 +790,8 @@ setInterval(function () {
 				final ManagedTable.Row parent_table = ManagedTable.getTable().findRow(tables, parent_table_name);
 				final String display_column_name = parent_table.getDisplayColumn();
 				final Data parent_rows = relation_rows.get(parent_table_name);
-%>						<select class="box odd dyn-select" name="filter-condition:<%= column_name %>" linked_table="<%= parent_table_name %>">
+				final String nullable = information_column.isNullable() ? "_null" : "_not_null";
+%>						<select class="box odd dyn-select" name="filter-condition:<%= column_name %>" linked_table="<%= parent_table_name %>" nullable="<%= nullable %>">
 <%
 				boolean has_option = false;
 				for (final Data parent_row : parent_rows.asArray())
@@ -817,7 +826,7 @@ setInterval(function () {
 				}
 				else if (information_column.isSmallInt() || information_column.isMediumInt() || information_column.isInt() || information_column.isBigInt() || information_column.isFloat() || information_column.isDouble())
 				{
-%>						<input class="box odd right" type="text" name="filter-condition:<%= column_name %>" value="<%= filter_condition %>" style="width: <%= width %>px;"/>
+%>						<input class="box odd right numeric" type="text" name="filter-condition:<%= column_name %>" value="<%= filter_condition %>" style="width: <%= width %>px;"/>
 <%
 				}
 				else if (information_column.isChar() || information_column.isVarchar() || information_column.isText())
@@ -977,9 +986,10 @@ setInterval(function () {
 				final ManagedTable.Row parent_table = ManagedTable.getTable().findRow(tables, parent_table_name);
 				final String display_column_name = parent_table.getDisplayColumn();
 				final Data parent_rows = relation_rows.get(parent_table_name);
-				if (!cached_options.has(parent_table_name)) {
+				final String nullable = information_column.isNullable() ? "_null" : "_not_null";
+				if (!cached_options.has(parent_table_name + nullable)) {
 					cached_options.set(parent_table_name, true);
-%>					<div id="option_cache_<%= parent_table_name %>" style="display:none;">
+%>					<div id="option_cache_<%= parent_table_name %><%= nullable %>" style="display:none;">
 <%
 					if (information_column.isNullable()) {
 %><option value="" label="(null)"/>
@@ -996,7 +1006,7 @@ setInterval(function () {
 <%
 				}
 
-%>				<select class="box odd dyn-select" name="column:<%= column_name %>" title="<%= column_name %>" linked_table="<%= parent_table_name %>">
+%>				<select class="box odd dyn-select" name="column:<%= column_name %>" title="<%= column_name %>" linked_table="<%= parent_table_name %>" nullable="<%= nullable %>">
 <%
 				if (information_column.isNullable())
 				{
@@ -1020,7 +1030,7 @@ setInterval(function () {
 				}
 				else if (information_column.isSmallInt() || information_column.isMediumInt() || information_column.isInt() || information_column.isBigInt() || information_column.isFloat() || information_column.isDouble())
 				{
-%>			<input class="box odd right" type="text" name="column:<%= column_name %>" style="width: <%= width %>px;" title="<%= column_name %>" <%= defaultValueExpr %> />
+%>			<input class="box odd right numeric" type="text" name="column:<%= column_name %>" style="width: <%= width %>px;" title="<%= column_name %>" <%= defaultValueExpr %> />
 <%
 				}
 				else if (information_column.isChar() || information_column.isVarchar() || information_column.isText())
@@ -1143,7 +1153,8 @@ setInterval(function () {
 						final ManagedTable.Row parent_table = ManagedTable.getTable().findRow(tables, parent_table_name);
 						final String display_column_name = parent_table.getDisplayColumn();
 						final Data parent_rows = relation_rows.get(parent_table_name);
-%>						<select class="box odd dyn-select" name="column:<%= column_name %>" title="<%= column_name %>" linked_table="<%= parent_table_name %>">
+						final String nullable = information_column.isNullable() ? "_null" : "_not_null";
+%>						<select class="box odd dyn-select" name="column:<%= column_name %>" title="<%= column_name %>" linked_table="<%= parent_table_name %>" nullable="<%= nullable %>">
 <%
 						boolean dead_link = true;
 						if (information_column.isNullable())
@@ -1187,7 +1198,7 @@ setInterval(function () {
 						}
 						else if (information_column.isSmallInt() || information_column.isMediumInt() || information_column.isInt() || information_column.isBigInt() || information_column.isFloat() || information_column.isDouble())
 						{
-%>							<input class="box <%= odd_or_even %> right<%= disabled %>" type="text" name="column:<%= column_name %>" value="<%= column_value %>" style="width: <%= width %>px;" title="<%= column_name %>"<%= disabled %>/>
+%>							<input class="box <%= odd_or_even %> right<%= disabled %> numeric" type="text" name="column:<%= column_name %>" value="<%= column_value %>" style="width: <%= width %>px;" title="<%= column_name %>"<%= disabled %>/>
 <%
 						}
 						else if (information_column.isChar() || information_column.isVarchar() || information_column.isText())
