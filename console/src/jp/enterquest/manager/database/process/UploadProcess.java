@@ -66,20 +66,16 @@ public final class UploadProcess extends Process
 	private final Process upload(final HttpServerRequest request)
 	{
 		final SqlConnection manager_connection = this.getConnection(DatabaseName.MANAGER);
+		final Logger logger = this.getLogger(LoggerName.OPTION);
 		try
 		{
-			final Logger logger = this.getLogger(LoggerName.OPTION);
-
 			final String request_client = request.getRemoteAddr();
 			final String request_operator_name = this.getString(request, "operator");
 			final String request_database_name = this.getString(request, "database");
 			final String request_table_name = this.getString(request, "table");
 			final Data rows = this.getJson(request, "file", "format");
 
-			if (logger.isInfoEnabled())
-			{
-				logger.info("client=%s operator=%s database=%s table=%s : upload file.", request_client, request_operator_name, request_database_name, request_table_name);
-			}
+			logger.info("client=%s operator=%s database=%s table=%s : upload file.", request_client, request_operator_name, request_database_name, request_table_name);
 
 			if (!Operator.getTable().existsRow(manager_connection, request_operator_name))
 			{
@@ -223,6 +219,7 @@ public final class UploadProcess extends Process
 		}
 		catch (final RuntimeException cause)
 		{
+		logger.info("upload error:" + cause.getMessage());
 			manager_connection.rollback();
 			throw cause;
 		}
@@ -242,6 +239,7 @@ public final class UploadProcess extends Process
 	private final Data getJson(final HttpServerRequest request, final String name, final String format_name)
 	{
 		final ReaderStream stream = request.getPart(name).getStream();
+		final Logger logger = this.getLogger(LoggerName.OPTION);
 		final String format = this.getString(request, format_name);
 		try
 		{
@@ -252,7 +250,7 @@ public final class UploadProcess extends Process
 				return JsonDecoder.getInstance().decode(text);
 			}
 			else if (format.equals("csv")) {
-				return CSVDecoder.getInstance().decode(text);
+				return CSVDecoder.getInstance().decode(text, logger);
 			}
 			else {
 				throw new IllegalArgumentException();

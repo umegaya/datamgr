@@ -174,6 +174,7 @@ public final class DatabaseViewer implements HttpServerDelegate
 	 */
 	private final Process newProcess(final HttpServerRequest request)
 	{
+		final Logger logger = this.getLogger(LoggerName.OPTION);
 		final String content_type = request.getHeader("content-type").asString().toLowerCase();
 		if (content_type.equals(MimeType.APPLICATION_XWWWFORMURLENCODED.getName()))
 		{

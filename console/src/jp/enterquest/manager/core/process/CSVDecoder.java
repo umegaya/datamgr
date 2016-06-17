@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
+import jp.enterquest.system.Logger;
+
 public final class CSVDecoder
 {
     public static String SEP = "\t";
@@ -25,13 +27,13 @@ public final class CSVDecoder
     {
     }
 
-    public final Data decode(String data)
+    public final Data decode(String data, final Logger logger)
     {
         Data ret = DataFactory.getInstance().newArray();
         String[] columns = null;
         for (String line : Arrays.asList(data.split("\n"))) {
             if (columns != null) {
-                ret.asArray().add(convertToHash(columns, line));
+                ret.asArray().add(convertToHash(columns, line, logger));
             }
             else {
                 columns = line.split(SEP);
@@ -40,9 +42,14 @@ public final class CSVDecoder
         return ret;
     }
 
-    public final Data convertToHash(String[] columns, String line) {
+    public final Data convertToHash(String[] columns, String line, final Logger logger) {
         Data data = DataFactory.getInstance().newHash();
-        String[] values = line.split(SEP);
+        //-1を指定することで最後のカラムが空白であっても正しくvaluesに含まれるようになる.
+        //https://docs.oracle.com/javase/jp/6/api/java/lang/String.html#split(java.lang.String) 
+        String[] values = line.split(SEP, -1);
+        if (values.length != columns.length) {
+            logger.info("length differ " + values.length + " should be " + columns.length + "|" + line);
+        }
         for (int i = 0; i < columns.length; i++) {
             data.asHash().set(columns[i], convertToData(values[i]));
         }
