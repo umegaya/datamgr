@@ -354,6 +354,9 @@ $(function() {
 			form.removeClass('update-error');
 			form.addClass('dirty');
 			form.removeAttr("title");
+			//remove fixed check
+			wa.find('input[type=text], input[type=checkbox], select, textarea').unbind("change");
+			//complement missing variable
 			row["request-insert"] = "insert";
 			row["operator"] = "<%= operator_name %>";
 			row["database"] = "<%= selected_database.getName() %>";	
@@ -380,6 +383,22 @@ $(function() {
 			form.removeClass('dirty');
 			form.addClass('update-error');
 			form.attr("title", err);
+			//check fixed
+			wa.find('input[type=text], input[type=checkbox], select, textarea')
+			.on("change", function (e, changed) {
+				var form = $(this).parents("tr");
+				var input = $(form).find("input.insert");
+				verify_formdata(input, daii, waf, function (row) {
+					form.removeClass('update-error');
+					form.addClass('dirty');
+					form.removeAttr("title");
+				}, function (err) {
+					console.log("data verification fails: " + err);
+					form.removeClass('dirty');
+					form.addClass('update-error');
+					form.attr("title", err);
+				});
+			});
 		});
 	});
 	da.find("input.delete").click(function (e) {
