@@ -108,6 +108,154 @@
 */
 %>
 
+//helpers
+function send_verify(row, successCB, errorCB) {
+	$.ajax({
+		url: '<%= url %>',
+		contentType : "application/x-www-form-urlencoded",
+		type: 'POST',
+		dataType: 'text',
+		data: {
+			"proxy-request":"verify row", 
+			"url":"http://cmt:8888/verify", 
+			"operator":"<%= operator_name %>", 
+			"data": encodeURIComponent(JSON.stringify({
+				table:"<%= selected_table.getName() %>",
+				row: row,
+			})),
+		},
+		success: function (data, status, req) {
+			$('.loading').removeClass("show");
+			if (data.indexOf("error") >= 0) {
+				errorCB(data);
+			}
+			else {
+				successCB(row);
+			}
+		},
+		error: function (req, status, error) {
+			$('.loading').removeClass("show");
+			errorCB(error);
+		}
+	});	
+}
+//現在送信したいデータを作業用フォームにコピーする.
+//serialize == trueだとserializeしてくれる.
+function attach_current_form(elem, attach_to, form, serialize, empty_values) {
+	form.empty();
+	var parent = elem.parents("tr");
+	parent.find("input").each(function (){
+		if (this.type == "button") return;
+		var inp = $(this).clone().val($(this).val());
+		form.append(inp);
+		if (empty_values && ($(this).attr('type') == 'checkbox')) {
+			//checkboxはbooleanとして振舞うように値を設定する.
+			empty_values[$(this).attr('name')] = $(this).prop('checked');
+		}
+	});
+	parent.find("select, textarea").each(function (){
+		form.append($(this).clone().val($(this).val()));
+		if (empty_values && $(this).hasClass('dyn-select') && !$(this).val()) {
+			//relationがあり、値が入っていない場合はnullとして扱う必要がある
+			empty_values[$(this).attr('name')] = null;
+		}
+	});
+	form.append(attach_to);
+	if (serialize) {
+		return form.serialize();
+	}
+	return null;
+}
+function formdata_to_row(formdata, empty_values) {
+	var ret = {};
+	formdata.replace(/([^=&]+)=([^=&]*)/gm, function (m, k, v) {
+		if (k.startsWith("column%3A")) {
+			k = k.replace(/^column%3A/, "");
+			ret[k] = v;
+		}
+	});
+	//empty_valuesがあれば、それで上書きする.
+	if (empty_values) {
+		//empty_valuesのkeyはattr('name')なのでurlencodeされていない.
+		for (var k in empty_values) {
+			var kk = k.replace(/^column:/, "");
+			ret[kk] = empty_values[k];
+		}
+	}
+	return ret;
+}
+var no_column_key = ["operator", "database", "table"];
+function row_to_formdata(row) {
+	var data = [];
+	for (var k in row) {
+		var v = row[k];
+		//console.log("kv:" + k + "|" + v + "|" + typeof(v));
+		if (k.startsWith("request") || no_column_key.indexOf(k) >= 0) {
+		} else {
+			k = "column:" + k;
+		}
+		if (v === null) {
+			v = "";
+		} else if (v === false) {
+			//checkboxがoffだったということなのでformdataに含めない.
+			continue
+		} else if (v === true) {
+			v = 1;
+		}
+		data.push(encodeURIComponent(k)+"="+encodeURIComponent(v));
+	}
+	return data.join('&');
+}
+function verify_formdata(elem, attach_to, form, successCB, errorCB) {
+	var empty_values = {};
+	var formdata = formdata_to_row(attach_current_form($(elem), attach_to, form, true, empty_values), empty_values);
+	if ("<%= selected_operator_database.getDatabase() %>" == "manager") {
+		successCB(formdata);
+		return;
+	}
+	//console.log("formdata = " + JSON.stringify(formdata));
+	send_verify(formdata, successCB, errorCB);	
+}
+function verify_rows(rows, successCB, errorCB) {
+	var fn = successCB;
+	var factory = function (row, next) {
+		return function () {
+			console.log("verify row:" + row.id);
+			send_verify(row, next, errorCB);
+		}
+	}
+	for (var i = rows.length - 1; i >= 0; i--) {
+		fn = factory(rows[i], fn);
+	}
+	return fn();
+}
+function verify_csv(csvtext, successCB, errorCB) {
+	var rows = [];
+	var lines = csvtext.split(/\r?\n/g);
+	var keys = lines[0].split('\t');
+	for (var i = 1; i < lines.length; i++) {
+		var obj = {}
+		var l = lines[i];
+		if (!l) {
+			continue;
+		}
+		vals = l.split('\t');
+		if (vals.length != keys.length) {
+			errorCB("wrong csv format: vals number:" + vals.length + " should be " + keys.length);
+			return;
+		}
+		for (var j = 0; j < keys.length; j++) {
+			obj[keys[j]] = vals[j];
+		}
+		rows.push(obj);
+	}
+	return verify_rows(rows, successCB, errorCB);
+}
+function verify_json(jsontext, successCB, errorCB) {
+	return verify_rows(JSON.parse(jsontext), successCB, errorCB);
+}
+//helper end
+
 $(function() {
 	$("#show_search_menu").click(function() {
 		$("div.search-area").toggle(300);
@@ -125,8 +273,8 @@ $(function() {
 	var ds = $('.dyn-select');
 	var hovers = $('[title]');
 	var inputerr = $('div.input-error');
-	var jsonup = $('input.json_upload_files');
-	var csvup = $('input.csv_upload_files');
+	var jsonup = $('input#json_upload_files');
+	var csvup = $('input#csv_upload_files');
 
 	function show_input_error(msg, form) {
 		console.log("data verification fails: " + msg);
@@ -193,110 +341,6 @@ $(function() {
 		elms[elms.index(this) + 1].focus();
 		return false;
 	});
-	//現在送信したいデータを作業用フォームにコピーする.
-	//serialize == trueだとserializeしてくれる.
-	function attach_current_form(elem, attach_to, form, serialize, empty_values) {
-		form.empty();
-		var parent = elem.parents("tr");
-		parent.find("input").each(function (){
-			if (this.type == "button") return;
-			var inp = $(this).clone().val($(this).val());
-			form.append(inp);
-			if (empty_values && ($(this).attr('type') == 'checkbox')) {
-				//checkboxはbooleanとして振舞うように値を設定する.
-				empty_values[$(this).attr('name')] = $(this).prop('checked');
-			}
-		});
-		parent.find("select, textarea").each(function (){
-			form.append($(this).clone().val($(this).val()));
-			if (empty_values && $(this).hasClass('dyn-select') && !$(this).val()) {
-				//relationがあり、値が入っていない場合はnullとして扱う必要がある
-				empty_values[$(this).attr('name')] = null;
-			}
-		});
-		form.append(attach_to);
-		if (serialize) {
-			return form.serialize();
-		}
-		return null;
-	}
-	function formdata_to_row(formdata, empty_values) {
-		var ret = {};
-		formdata.replace(/([^=&]+)=([^=&]*)/gm, function (m, k, v) {
-			if (k.startsWith("column%3A")) {
-				k = k.replace(/^column%3A/, "");
-				ret[k] = v;
-			}
-		});
-		//empty_valuesがあれば、それで上書きする.
-		if (empty_values) {
-			//empty_valuesのkeyはattr('name')なのでurlencodeされていない.
-			for (var k in empty_values) {
-				var kk = k.replace(/^column:/, "");
-				ret[kk] = empty_values[k];
-			}
-		}
-		return ret;
-	}
-	var no_column_key = ["operator", "database", "table"];
-	function row_to_formdata(row) {
-		var data = [];
-		for (var k in row) {
-			var v = row[k];
-			//console.log("kv:" + k + "|" + v + "|" + typeof(v));
-			if (k.startsWith("request") || no_column_key.indexOf(k) >= 0) {
-			} else {
-				k = "column:" + k;
-			}
-			if (v === null) {
-				v = "";
-			} else if (v === false) {
-				//checkboxがoffだったということなのでformdataに含めない.
-				continue
-			} else if (v === true) {
-				v = 1;
-			}
-			data.push(encodeURIComponent(k)+"="+encodeURIComponent(v));
-		}
-		return data.join('&');
-	}
-	function verify_formdata(elem, attach_to, form, successCB, errorCB) {
-		var empty_values = {};
-		var formdata = formdata_to_row(attach_current_form($(elem), daiu, form, true, empty_values), empty_values);
-		if ("<%= selected_operator_database.getDatabase() %>" == "manager") {
-			successCB(formdata);
-			return;
-		}
-		//console.log("formdata = " + JSON.stringify(formdata));
-		$.ajax({
-			url: '<%= url %>',
-			contentType : "application/x-www-form-urlencoded",
-			type: 'POST',
-			dataType: 'text',
-			data: {
-				"proxy-request":"verify row", 
-				"url":"http://cmt:8888/verify", 
-				"operator":"<%= operator_name %>", 
-				"data": encodeURIComponent(JSON.stringify({
-					table:"<%= selected_table.getName() %>",
-					row: formdata,
-				})),
-			},
-			success: function (data, status, req) {
-				$('.loading').removeClass("show");
-				if (data.indexOf("error") >= 0) {
-					errorCB(data);
-				}
-				else {
-					successCB(formdata);
-				}
-			},
-			error: function (req, status, error) {
-				$('.loading').removeClass("show");
-				errorCB(error);
-			}
-		});		
-	}
 	var numericRegex = /[0-9\b\xbe\x25\x26\x27\x28\x0d\x09]/;
 	da.find('input[type=text], input[type=checkbox], select, textarea').keydown(function (e) {
 		if (e.ctrlKey || e.altKey) {
@@ -497,9 +541,32 @@ $(function() {
 			$(this).attr("title", value);
 		}
 	})
-	csvup.bind('change', function() {
-		alert(this.files[0].size);
-	});
+	function make_verifier(verifier, id) {
+		return function () {
+			var file = document.getElementById(id).files[0];
+			if (!file) {
+				hide_input_error();
+				return;
+			}
+	 		console.log(file.size);
+			$("input[name=request-upload]").prop('disabled', true);
+			var reader = new FileReader();
+			reader.onload = function (ev) {
+				var text = ev.target.result;
+				verifier(text, function () {
+					//enable upload button
+					hide_input_error();
+					$("input[name=request-upload]").prop('disabled', false);
+				}, show_input_error);
+			}
+	  		reader.onerror = function (ev) {
+	  			show_input_error("ファイルの読み込みに失敗しました");
+	  		}
+	  		reader.readAsText(file, "UTF-8");
+	  	}
+	}
+	csvup.bind('change', make_verifier(verify_csv, csvup.attr("id")));
+	jsonup.bind('change', make_verifier(verify_csv, jsonup.attr("id")));
 });
 
 // jsonとcsvを適用する前に確認を行うダイアログを表示
