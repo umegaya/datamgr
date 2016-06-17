@@ -260,6 +260,11 @@ table th
 	background: #ff5555;
 	border-color: #ff0000;
 }
+.input-error 
+{
+	font-size: 16px;
+	color: #f44;
+}
 .right
 {
 	text-align: right;

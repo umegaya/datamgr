@@ -124,6 +124,29 @@ $(function() {
 	var ag = $("#apply-game");
 	var ds = $('.dyn-select');
 	var hovers = $('[title]');
+	var inputerr = $('div.input-error');
+	var jsonup = $('input.json_upload_files');
+	var csvup = $('input.csv_upload_files');
+
+	function show_input_error(msg, form) {
+		console.log("data verification fails: " + msg);
+		inputerr.text(msg.substr(0, 256));
+		inputerr.show();
+		if (form) {
+			form.removeClass('dirty');
+			form.addClass('update-error');
+			form.attr("title", msg);
+		}
+	}
+	function hide_input_error(form) {
+		inputerr.text("");
+		inputerr.hide();
+		if (form) {
+			form.removeClass('update-error');
+			form.addClass('dirty');
+			form.removeAttr("title");
+		}
+	}
 
 	daf.bind("jsubmit", function( e, input ) {
 		var cinput = $(input);
@@ -333,14 +356,9 @@ $(function() {
 		var form = $(this).parents("tr");
 		var input = $(form).find("input.update");
 		verify_formdata(input, daiu, daf, function (row) {
-			form.removeClass('update-error');
-			form.addClass('dirty');
-			form.removeAttr("title");
+			hide_input_error(form);
 		}, function (err) {
-			console.log("data verification fails: " + err);
-			form.removeClass('dirty');
-			form.addClass('update-error');
-			form.attr("title", err);
+			show_input_error(err, form);
 		});
 	});
 	da.find("input.update").click(function (e) {
@@ -351,9 +369,7 @@ $(function() {
 		e.preventDefault();
 		var form = $(this).parents("tr");
 		verify_formdata($(this), daii, waf, function (row) {
-			form.removeClass('update-error');
-			form.addClass('dirty');
-			form.removeAttr("title");
+			hide_input_error(form);
 			//remove fixed check
 			wa.find('input[type=text], input[type=checkbox], select, textarea').unbind("change");
 			//complement missing variable
@@ -379,24 +395,16 @@ $(function() {
 				}
 			});
 		}, function (err) {
-			console.log("insert: data verification fails: " + err);
-			form.removeClass('dirty');
-			form.addClass('update-error');
-			form.attr("title", err);
+			show_input_error(err, form);
 			//check fixed
 			wa.find('input[type=text], input[type=checkbox], select, textarea')
 			.on("change", function (e, changed) {
 				var form = $(this).parents("tr");
 				var input = $(form).find("input.insert");
 				verify_formdata(input, daii, waf, function (row) {
-					form.removeClass('update-error');
-					form.addClass('dirty');
-					form.removeAttr("title");
+					hide_input_error(form);
 				}, function (err) {
-					console.log("data verification fails: " + err);
-					form.removeClass('dirty');
-					form.addClass('update-error');
-					form.attr("title", err);
+					show_input_error(err, form);
 				});
 			});
 		});
@@ -489,6 +497,9 @@ $(function() {
 			$(this).attr("title", value);
 		}
 	})
+	csvup.bind('change', function() {
+		alert(this.files[0].size);
+	});
 });
 
 // jsonとcsvを適用する前に確認を行うダイアログを表示
@@ -972,7 +983,10 @@ setInterval(function () {
 		final String database_name = selected_database.getName();
 		final String table_name = selected_table.getName();
 		Hash cached_options = Hash.newInstance();
-%>		<!-- 追加フォーム -->
+%>		
+		<!-- エラー表示用 -->
+		<div class="input-error"></div>
+		<!-- 追加フォーム -->
 	  <div class="write-area dark">
 		<table class="submiter">
 		<tr>
