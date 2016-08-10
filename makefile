@@ -28,9 +28,13 @@ fe:
 all: ct cm
 	echo "done!!"
 
-# should specify HOST
+# should specify HOST, and DBHOST if db and web run on different server
+ifndef DBHOST
+DBHOST=$(HOST)
+endif
 attach:
+	echo "Hosts: $(HOST) $(DBHOST)"
 	@-docker kill dm4_$(HOST) cm4_$(HOST)
 	@-docker rm dm4_$(HOST) cm4_$(HOST)
-	docker run -d --name cm4_$(HOST) --add-host dms:$(HOST) umegaya/commiter
+	docker run -d --name cm4_$(HOST) --add-host dms:$(HOST) --add-host db:$(DBHOST) umegaya/commiter
 	docker run -d --name dm4_$(HOST) --link cm4_$(HOST):cmt --add-host dms:$(HOST) umegaya/datamgr
