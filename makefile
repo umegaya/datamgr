@@ -27,3 +27,10 @@ fe:
 
 all: ct cm
 	echo "done!!"
+
+# should specify HOST
+attach:
+	@-docker kill dm4_$(HOST) cm4_$(HOST)
+	@-docker rm dm4_$(HOST) cm4_$(HOST)
+	docker run -d --name cm4_$(HOST) --add-host dms:$(HOST) umegaya/commiter
+	docker run -d --name dm4_$(HOST) --link cm4_$(HOST):cmt --add-host dms:$(HOST) umegaya/datamgr
