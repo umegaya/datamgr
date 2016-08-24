@@ -175,6 +175,7 @@ public final class InsertProcess extends Process
 					final boolean insert_time_column = column_name.equals(table.getInsertTimeColumn());
 					final boolean update_time_column = column_name.equals(table.getUpdateTimeColumn());
 					final String request_key = String.format("column:%s", column_name);
+					//logger.warning("hasparam: %s %s", request_key, request.hasParameter(request_key));
 					if (request.hasParameter(request_key))
 					{
 						final Data request_value = request.getParameter(request_key);
@@ -207,8 +208,7 @@ public final class InsertProcess extends Process
 						values.set(column_name, Common.getInstance().getEmptyValue(column));
 					}
 				}
-
-				Common.getInstance().insertRow(insert_connection, table, columns, values);
+				Common.getInstance().insertRow(insert_connection, table, columns, values, logger);
 			}
 			catch (final RuntimeException cause)
 			{

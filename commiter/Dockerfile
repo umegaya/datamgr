@@ -9,6 +9,7 @@ RUN apk add --update socat && \
 	apk add --update git && \
 	apk add --update bash && \
 	apk add --update ruby && \
+	apk add --update curl && \
 	rm -rf /var/cache/apk/*
 
 ADD hub /usr/local/bin/hub

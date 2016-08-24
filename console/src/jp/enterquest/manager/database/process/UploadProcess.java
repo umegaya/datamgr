@@ -179,7 +179,6 @@ public final class UploadProcess extends Process
 			{
 				final ManagedTable.Row table = ManagedTable.getTable().findRow(tables, request_table_name);
 				final Array<InformationColumn.Row> columns = InformationColumn.getTable().selectRows(upload_connection, request_table_name);
-
 				// idカラムがある場合はCSV(JSON)で利用されているidを収集してid群のデータを作成して
 				// ランダムidを生成する際に利用済みかのチェックで使用する
 				final HashMap<Integer, Integer> ids = new HashMap<Integer, Integer>();
@@ -200,8 +199,12 @@ public final class UploadProcess extends Process
 						final Data value = this.getRandomValue(ids);
 						row.asHash().set("id", value);
 					}
+				/*logger.warning("row = %d: created = [%s] %s", 
+					row.asHash().has("id") ? row.asHash().get("id").asInt32() : -1, 
+					row.asHash().has("created") ? row.asHash().get("created").asString() : "Null", 
+					InformationColumn.getTable().existsRow(upload_connection, request_table_name, "id") ? "id-exists" : "no-id"); */
 
-					Common.getInstance().insertRow(upload_connection, table, columns, row.asHash());
+					Common.getInstance().insertRow(upload_connection, table, columns, row.asHash(), logger);
 				}
 			}
 			catch (final RuntimeException cause)

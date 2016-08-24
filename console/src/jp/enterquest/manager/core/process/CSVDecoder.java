@@ -31,7 +31,7 @@ public final class CSVDecoder
     {
         Data ret = DataFactory.getInstance().newArray();
         String[] columns = null;
-        for (String line : Arrays.asList(data.split("\n"))) {
+        for (String line : Arrays.asList(data.replaceAll("\r\n", "\n").split("\n"))) {
             if (columns != null) {
                 ret.asArray().add(convertToHash(columns, line, logger));
             }
@@ -51,6 +51,7 @@ public final class CSVDecoder
             logger.info("length differ " + values.length + " should be " + columns.length + "|" + line);
         }
         for (int i = 0; i < columns.length; i++) {
+            //logger.info("c&v: [%s] [%s]", columns[i], values[i]);
             data.asHash().set(columns[i], convertToData(values[i]));
         }
         return data;

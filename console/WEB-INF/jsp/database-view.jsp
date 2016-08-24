@@ -171,7 +171,7 @@ function formdata_to_row(formdata, empty_values) {
 	formdata.replace(/([^=&]+)=([^=&]*)/gm, function (m, k, v) {
 		if (k.startsWith("column%3A")) {
 			k = k.replace(/^column%3A/, "");
-			ret[k] = v;
+			ret[k] = v.startsWith('%') ? decodeURIComponent(v) : v;
 		}
 	});
 	//empty_valuesがあれば、それで上書きする.
@@ -245,7 +245,7 @@ function verify_csv(csvtext, successCB, errorCB) {
 			return;
 		}
 		for (var j = 0; j < keys.length; j++) {
-			obj[keys[j]] = vals[j];
+			obj[keys[j]] = (vals[j] != "null" ? vals[j] : null);
 		}
 		rows.push(obj);
 	}

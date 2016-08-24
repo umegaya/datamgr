@@ -386,6 +386,15 @@ public class Common
 		}
 	}
 
+	public final boolean shouldOmitValue(final Array<InformationColumn.Row> columns, final Hash<String,Data> values, final String column_name) {
+		InformationColumn.Row row = InformationColumn.getTable().findRow(columns, column_name);
+		//auto increment であって、値が設定されていない、あるいはemptyの場合.値を省略することで、autoincrementに任せる.
+		return (row != null && row.isAutoIncrement()) && (
+			!values.has(column_name) || values.get(column_name).isNull() || 
+			(values.get(column_name).isInt32() && values.get(column_name).asInt32() == 0)
+		);
+	}
+
 	/**
 	 * レコードを追加する
 	 * @param connection SQLコネクション
@@ -398,7 +407,8 @@ public class Common
 		final SqlConnection connection
 		, final ManagedTable.Row table
 		, final Array<InformationColumn.Row> columns
-		, final Hash<String,Data> values)
+		, final Hash<String,Data> values
+		, final Logger logger)
 	{
 		final StringBuilder buffer = new StringBuilder(1024);
 		buffer.append("INSERT INTO ");
@@ -411,8 +421,7 @@ public class Common
 			boolean first = true;
 			for (final String column_name : values)
 			{
-				InformationColumn.Row row = InformationColumn.getTable().findRow(columns, column_name);
-				if (row != null && !row.isAutoIncrement())
+				if (!this.shouldOmitValue(columns, values, column_name))
 				{
 					final Data value = values.get(column_name);
 					buffer.append(first ? " SET " : ",");
@@ -456,8 +465,7 @@ public class Common
 			int index = 0;
 			for (final String column_name : values)
 			{
-				InformationColumn.Row row = InformationColumn.getTable().findRow(columns, column_name);
-				if (row != null && !row.isAutoIncrement())
+				if (!this.shouldOmitValue(columns, values, column_name))
 				{
 					final Data column_value = values.get(column_name);
 					if (!column_value.isNull())
@@ -501,8 +509,7 @@ public class Common
 			boolean first = true;
 			for (final String column_name : values)
 			{
-				InformationColumn.Row row = InformationColumn.getTable().findRow(columns, column_name);
-				if (row != null && !row.isAutoIncrement())
+				if (!this.shouldOmitValue(columns, values, column_name))
 				{
 					final Data value = values.get(column_name);
 					buffer.append(first ? " SET " : ",");
@@ -551,8 +558,7 @@ public class Common
 			int index = 0;
 			for (final String column_name : values)
 			{
-				InformationColumn.Row row = InformationColumn.getTable().findRow(columns, column_name);
-				if (row != null && !row.isAutoIncrement())
+				if (!this.shouldOmitValue(columns, values, column_name))
 				{
 					final Data column_value = values.get(column_name);
 					if (!column_value.isNull())
