@@ -129,6 +129,8 @@ public final class DatabaseViewer implements HttpServerDelegate
 		catch (final RuntimeException cause)
 		{
 			logger.error(cause);
+			final DatabaseViewProcess p = new DatabaseViewProcess(this.server, cause.getMessage());
+			p.run(request, response);
 		}
 		finally
 		{
@@ -161,6 +163,8 @@ public final class DatabaseViewer implements HttpServerDelegate
 		catch (final RuntimeException cause)
 		{
 			logger.error(cause);
+			final DatabaseViewProcess p = new DatabaseViewProcess(this.server, cause.getMessage());
+			p.run(request, response);
 		}
 		finally
 		{

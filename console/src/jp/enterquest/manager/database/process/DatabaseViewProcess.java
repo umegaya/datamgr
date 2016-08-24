@@ -42,13 +42,21 @@ import jp.enterquest.system.TextReader;
  */
 public final class DatabaseViewProcess extends Process
 {
+	String error;
 	/**
 	 * コンストラクタ
 	 * @param server HTTPサーバ
 	 */
+	public DatabaseViewProcess(final HttpServer server, final String error)
+	{
+		super(server);
+		this.error = error;
+	}
+
 	public DatabaseViewProcess(final HttpServer server)
 	{
 		super(server);
+		this.error = "";
 	}
 
 	/**
@@ -159,6 +167,7 @@ public final class DatabaseViewProcess extends Process
 			request.setAttribute("tables", tables);
 			request.setAttribute("operator-tables", operator_tables);
 			request.setAttribute("selected", selected);
+			request.setAttribute("error", this.error);
 
 			if (selected)
 			{

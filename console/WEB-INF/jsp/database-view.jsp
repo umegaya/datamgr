@@ -82,6 +82,8 @@
 	final boolean downloadable = (readable && selected_operator_database.isDownloadable() && selected_operator_table.isDownloadable());
 	// アップロード可否
 	final boolean uploadable = (writable && selected_operator_database.isUploadable() && selected_operator_table.isUploadable());
+	// エラー
+	final String errorMessage = (String)request.getAttribute("error");
 %><!DOCTYPE html>
 <html lang="ja">
 	<head>
@@ -138,6 +140,41 @@ function send_verify(row, successCB, errorCB) {
 			errorCB(error);
 		}
 	});	
+}
+function async_upload(fmt, filename, successCB, errorCB) {
+    // alert(file.name+" | "+file.size+" | "+file.type);
+    var formdata = new FormData();
+    formdata.append("file", filename);
+    formdata.append("request-upload", "Upload");
+    formdata.append("operator", "<%= operator_name %>");
+    formdata.append("database", "<%= selected_database.getName() %>");
+    formdata.append("table", "<%= selected_table.getName() %>");
+    formdata.append("format", fmt);
+    
+    /*
+    var ajax = new XMLHttpRequest();
+    ajax.addEventListener("load", successCB, false);
+    ajax.addEventListener("error", errorCB, false);
+    ajax.addEventListener("abort", errorCB, false);
+    ajax.open("POST", "<%= url %>");
+    ajax.send(formdata);
+    */
+
+    $.ajax({
+        url: '<%= url %>',
+        contentType : false,
+        processData : false,
+        enctype: 'multipart/form-data',
+        type: "POST",
+		dataType: 'text',
+        data: formdata,
+        success: function (data, status, req) {
+        	successCB(data);
+        },
+		error: function (req, status, error) {
+			errorCB(error);
+		},
+    }); //*/
 }
 //現在送信したいデータを作業用フォームにコピーする.
 //serialize == trueだとserializeしてくれる.
@@ -273,10 +310,14 @@ $(function() {
 	var ds = $('.dyn-select');
 	var hovers = $('[title]');
 	var inputerr = $('div.input-error');
+	var initial_error = $('div.initial-error');
 	var jsonup = $('input#json_upload_files');
 	var csvup = $('input#csv_upload_files');
+	var jsonsub = $('input#json_submit');
+	var csvsub = $('input#csv_submit');
 
 	function show_input_error(msg, form) {
+		if (!msg) { return; }
 		console.log("data verification fails: " + msg);
 		inputerr.text(msg.substr(0, 256));
 		inputerr.show();
@@ -565,27 +606,45 @@ $(function() {
 	  		reader.readAsText(file, "UTF-8");
 	  	}
 	}
+	// jsonとcsvを適用する前に確認を行うダイアログを表示し、okなら適用する.
+	function make_uploader(fmt, id) {
+		return function (e) {
+			var file_list = document.getElementById(id).files;
+
+			if(file_list.length == 0){
+				alert('ファイルが選択されていません');
+				return false;
+			}
+
+			var list = "";
+			for(var i = 0; i < file_list.length; i++){
+				list += file_list[i].name;
+			}
+
+			var message = list + 'を適用します、よろしいですか？';
+			if (confirm(message)) {
+				/* async_upload(file_list[0], fmt, function (data) {
+					console.log("upload success");
+					location.reload();
+				}, function (err) {
+					console.log("upload fails:" + JSON.stringify(err));
+					show_input_error(JSON.stringify(err));
+				}); */
+			} else {
+				e.preventDefault();
+			}
+		}
+	}
 	csvup.bind('change', make_verifier(verify_csv, csvup.attr("id")));
-	jsonup.bind('change', make_verifier(verify_csv, jsonup.attr("id")));
+	jsonup.bind('change', make_verifier(verify_json, jsonup.attr("id")));
+	csvsub.bind('click', make_uploader("csv", csvup.attr("id")));
+	jsonsub.bind('click', make_uploader("json", jsonup.attr("id")));
+	var err = initial_error.text();
+	if (err) {
+		initial_error.text("");
+		show_input_error(err)
+	};
 });
-
-// jsonとcsvを適用する前に確認を行うダイアログを表示
-function upload_check(id){
-	var file_list = document.getElementById(id).files;
-
-	if(file_list.length == 0){
-		alert('ファイルが選択されていません');
-		return false;
-	}
-
-	var list = "";
-	for(var i = 0; i < file_list.length; i++){
-		list += file_list[i].name;
-	}
-
-	var message = list + 'を適用します、よろしいですか？';
-	return confirm(message);
-}
 
 function on_pull_request() {
 	if (!confirm("現在の修正内容でpull requestを作成します。よろしいですか？")) return;
@@ -1052,6 +1111,7 @@ setInterval(function () {
 		Hash cached_options = Hash.newInstance();
 %>		
 		<!-- エラー表示用 -->
+		<div class="initial-error"><%= errorMessage %></div>
 		<div class="input-error"></div>
 		<!-- 追加フォーム -->
 	  <div class="write-area dark">
@@ -1418,7 +1478,7 @@ setInterval(function () {
 			<input type="hidden" name="database" value="<%= database_name %>"/>
 			<input type="hidden" name="table" value="<%= table_name %>"/>
 			<input type="hidden" name="format" value="json"/>
-			<input type="submit" name="request-upload" value="Upload" title="アップロード" onClick="return upload_check('json_upload_files')"/>
+			<input type="submit" name="request-upload" value="Upload" title="アップロード" id="json_submit"/>
 			<input type="file" name="file" id="json_upload_files" multiple/>
 		</form>
 <%
@@ -1443,7 +1503,7 @@ setInterval(function () {
 			<input type="hidden" name="database" value="<%= database_name %>"/>
 			<input type="hidden" name="table" value="<%= table_name %>"/>
 			<input type="hidden" name="format" value="csv"/>
-			<input type="submit" name="request-upload" value="CSV Upload" title="CSVアップロード" onClick="return upload_check('csv_upload_files')"/>
+			<input type="submit" name="request-upload" value="CSV Upload" title="CSVアップロード" id="csv_submit"/>
 			<input type="file" name="file" id="csv_upload_files" multiple/>
 		</form>
 <%
